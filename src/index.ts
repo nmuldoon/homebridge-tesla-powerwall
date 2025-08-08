@@ -9,3 +9,6 @@ import { PLATFORM_NAME } from './settings.js';
 export default (api: API) => {
   api.registerPlatform(PLATFORM_NAME, TeslaPowerwallPlatform);
 };
+
+// Export the ConfigUI service for Homebridge Config UI X
+export { ConfigUIService } from './configUI.js';

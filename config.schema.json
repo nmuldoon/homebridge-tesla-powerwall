@@ -2,6 +2,8 @@
   "pluginAlias": "TeslaPowerwall",
   "pluginType": "platform",
   "singular": true,
+  "headerDisplay": "A Homebridge plugin for Tesla Powerwall that provides battery status, power flow, and grid connectivity monitoring in HomeKit.",
+  "footerDisplay": "For help and support visit the [plugin repository](https://github.com/nmuldoon/homebridge-tesla-powerwall).",
   "schema": {
     "type": "object",
     "properties": {
@@ -9,45 +11,52 @@
         "title": "Name",
         "type": "string",
         "default": "Tesla Powerwall",
-        "required": true
+        "required": true,
+        "description": "The name that will appear in HomeKit for your Tesla Powerwall"
       },
       "ip": {
         "title": "IP Address",
         "type": "string",
         "default": "192.168.1.100",
         "required": true,
-        "format": "ipv4"
+        "format": "ipv4",
+        "description": "The IP address of your Tesla Powerwall on your local network"
       },
       "port": {
         "title": "Port",
         "type": "string",
         "default": "443",
-        "required": false
+        "required": false,
+        "description": "Port number (leave as 443 unless you've changed it)"
       },
       "password": {
         "title": "Password",
         "type": "string",
-        "required": true
+        "required": true,
+        "description": "Your Tesla Powerwall password (set via the Tesla app)"
       },
       "username": {
         "title": "Username",
         "type": "string",
         "default": "customer",
-        "required": false
+        "required": false,
+        "description": "Username (leave as 'customer' - this is the standard for all Powerwalls)"
       },
       "pollingInterval": {
         "title": "Polling Interval (seconds)",
         "type": "integer",
         "default": 15,
         "minimum": 5,
-        "maximum": 300
+        "maximum": 300,
+        "description": "How often to check the Powerwall for updated data (5-300 seconds)"
       },
       "lowBattery": {
         "title": "Low Battery Threshold (%)",
         "type": "integer",
         "default": 20,
         "minimum": 1,
-        "maximum": 50
+        "maximum": 50,
+        "description": "Battery percentage at which to trigger low battery alerts"
       }
     }
   },
@@ -55,21 +64,28 @@
     {
       "type": "fieldset",
       "title": "Connection Settings",
+      "description": "Configure the connection to your Tesla Powerwall",
       "items": [
         "name",
         "ip",
         "port",
         "password",
-        "username"
+        "username",
+        "email"
       ]
     },
     {
       "type": "fieldset",
-      "title": "Advanced Settings",
+      "title": "Monitoring Settings",
+      "description": "Configure how often to check the Powerwall and battery thresholds",
       "items": [
         "pollingInterval",
         "lowBattery"
       ]
+    },
+    {
+      "type": "help",
+      "helpvalue": "<h4>🚀 Quick Setup Guide:</h4><ol><li><strong>Find your Powerwall IP:</strong> Check your router's device list for 'Tesla Energy Gateway' or similar</li><li><strong>Get your password:</strong> Set via Tesla mobile app → Energy → Powerwall → Settings → 'Tesla Powerwall Password'</li><li><strong>Test manually:</strong> Run <code>node test/integration/test-connection.js [IP] customer [password]</code> from the plugin directory</li><li><strong>Save and restart:</strong> Homebridge will automatically discover your Powerwall accessories</li></ol><h4>🔧 Troubleshooting:</h4><ul><li><strong>Connection refused:</strong> Verify IP address and network connectivity</li><li><strong>Authentication failed:</strong> Double-check your password in the Tesla app</li><li><strong>Timeouts:</strong> Ensure you're on the same network as the Powerwall</li><li><strong>SSL errors:</strong> The plugin automatically handles self-signed certificates</li></ul><h4>📊 What you'll get in HomeKit:</h4><ul><li><strong>Battery Service:</strong> Level, charging state, and low battery alerts</li><li><strong>Grid Status:</strong> Contact sensor showing grid connection</li><li><strong>Power Meters:</strong> Light sensors showing load, solar, and grid power</li></ul>"
     }
   ]
 }
