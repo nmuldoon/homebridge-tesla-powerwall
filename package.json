@@ -16,7 +16,13 @@
   },
   "keywords": [
     "homebridge-plugin",
-    "Tesla Powerwall"
+    "homebridge",
+    "Tesla Powerwall",
+    "Tesla",
+    "Powerwall",
+    "battery",
+    "solar",
+    "energy"
   ],
   "author": "Nick Muldoon",
   "license": "Apache-2.0",

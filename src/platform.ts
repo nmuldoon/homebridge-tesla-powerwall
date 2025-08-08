@@ -27,7 +27,7 @@ export class TeslaPowerwallPlatform implements DynamicPlatformPlugin {
   public readonly accessories: Map<string, PlatformAccessory> = new Map();
   public readonly discoveredCacheUUIDs: string[] = [];
 
-  public readonly httpClient: HttpClient;
+  public readonly httpClient!: HttpClient;
 
   constructor(
     public readonly log: Logging,
@@ -37,24 +37,34 @@ export class TeslaPowerwallPlatform implements DynamicPlatformPlugin {
     this.Service = api.hap.Service;
     this.Characteristic = api.hap.Characteristic;
 
-    // Initialize HTTP client for Tesla Powerwall API
+    this.log.debug('Finished initializing platform:', this.config.name);
+
+    // Validate configuration
+    if (!this.config.ip) {
+      this.log.error('Tesla Powerwall IP address is required in configuration');
+      return;
+    }
+
+    if (!this.config.password) {
+      this.log.error('Tesla Powerwall password is required in configuration');
+      return;
+    }
+
+    // Initialize HTTP client with Tesla Powerwall credentials
     this.httpClient = new HttpClient(
-      this.config.ip || '127.0.0.1',
-      this.config.port || '',
-      this.config.username || 'customer',
-      this.config.password || '',
-      this.config.email || 'Lt.Dan@bubbagump.com',
+      config.ip,
+      config.port || '443',
+      config.username || 'customer',
+      config.password,
       this.log,
     );
-
-    this.log.debug('Finished initializing platform:', this.config.name);
 
     // When this event is fired it means Homebridge has restored all cached accessories from disk.
     // Dynamic Platform plugins should only register new accessories after this event was fired,
     // in order to ensure they weren't added to homebridge already. This event can also be used
     // to start discovery of new accessories.
     this.api.on('didFinishLaunching', () => {
-      log.debug('Executed didFinishLaunching callback');
+      this.log.debug('Executed didFinishLaunching callback');
       // run the method to discover / register your devices as accessories
       this.discoverDevices();
     });
@@ -162,21 +172,21 @@ export class TeslaPowerwallPlatform implements DynamicPlatformPlugin {
   /**
    * Create the appropriate accessory handler based on device type
    */
-  private createAccessoryHandler(accessory: PlatformAccessory, device: any) {
+  private createAccessoryHandler(accessory: PlatformAccessory, device: { type: string }) {
     switch (device.type) {
-      case 'powerwall':
-        new PowerwallAccessory(this, accessory);
-        break;
-      case 'gridstatus':
-        new GridStatusAccessory(this, accessory);
-        break;
-      case 'powermeter-load':
-      case 'powermeter-solar':
-      case 'powermeter-grid':
-        new PowerMeterAccessory(this, accessory);
-        break;
-      default:
-        this.log.warn('Unknown device type:', device.type);
+    case 'powerwall':
+      new PowerwallAccessory(this, accessory);
+      break;
+    case 'gridstatus':
+      new GridStatusAccessory(this, accessory);
+      break;
+    case 'powermeter-load':
+    case 'powermeter-solar':
+    case 'powermeter-grid':
+      new PowerMeterAccessory(this, accessory);
+      break;
+    default:
+      this.log.warn('Unknown device type:', device.type);
     }
   }
 }
