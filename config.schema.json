@@ -70,8 +70,7 @@
         "ip",
         "port",
         "password",
-        "username",
-        "email"
+        "username"
       ]
     },
     {

@@ -13,7 +13,6 @@ export class HttpClient {
     private readonly port: string,
     private readonly username: string,
     private readonly password: string,
-    private readonly email: string,
     private readonly log: Logging,
   ) {
     // Build base URL
@@ -135,7 +134,6 @@ export class HttpClient {
         await this.post('/api/login/Basic', {
           username: this.username,
           password: this.password,
-          email: this.email,
         });
         this.log.info('Tesla Powerwall login successful');
       } catch (error) {

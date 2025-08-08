@@ -18,7 +18,6 @@ const config = {
   ip: process.env.POWERWALL_IP || process.argv[2] || "",
   username: process.env.POWERWALL_USERNAME || process.argv[3] || "customer",
   password: process.env.POWERWALL_PASSWORD || process.argv[4] || "",
-  email: process.env.POWERWALL_EMAIL || process.argv[5] || "Lt.Dan@bubbagump.com",
   port: process.env.POWERWALL_PORT || process.argv[6] || "443",
 };
 
@@ -169,7 +168,6 @@ async function testConnection() {
       "port": config.port !== "443" ? config.port : undefined,
       "password": "your-password-here",
       "username": config.username !== "customer" ? config.username : undefined,
-      "email": config.email !== "Lt.Dan@bubbagump.com" ? config.email : undefined,
       "pollingInterval": 15,
       "lowBattery": 20
     }, null, 2));

@@ -7,7 +7,6 @@ interface TestConnectionConfig {
   username?: string;
   password: string;
   port?: string;
-  email?: string;
 }
 
 export interface TestConnectionResult {
@@ -72,7 +71,6 @@ export class ConfigUIService {
         body: JSON.stringify({
           username: config.username || 'customer',
           password: config.password,
-          email: config.email || 'Lt.Dan@bubbagump.com',
         }),
         timeout: 10000,
       });

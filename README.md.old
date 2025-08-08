@@ -45,7 +45,6 @@ Optional:
 ```json
             "port": "",
             "username": "customer",
-            "email": "Lt.Dan@bubbagump.com",
             "loginInterval": 39600000,
             "pollingInterval": 15000,
             "historyInterval": 300000,
@@ -109,8 +108,6 @@ Optional:
 * `username`: the default ("customer") is currently the only username that will 
   work when logging in, i.e., there is no need to change any username; 
   using "customer" here, will *just work*.
-* `email`: is part of the login data. However, it currently seems to be ignored, 
-  i.e., it does not matter what email is entered.
 
 * `loginInterval`, `pollingInterval` or `historyInterval` in milliseconds
 * `loginInterval`: the login is executed periodically based on this interval. 
