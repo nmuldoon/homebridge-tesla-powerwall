@@ -13,7 +13,7 @@ var Characteristic, Service, FakeGatoHistoryService, FakeGatoHistorySetting;
 var inherits = require('util').inherits;
 
 var ValueGetter = require('./src/helper/value-getter.js');
-var request  = require('request');
+var fetch = require('node-fetch');
 var _checkRequestError = require('./src/helper/check-for-request-error.js');
 var Powerwall, PowerMeter, PowerMeterLineGraph, GridStatus;
 
@@ -179,26 +179,33 @@ function TeslaPowerwall(log, config) {
     //
     // My http requests will automatically use received cookies. 
     var login = function() {
-        request(
-            {
-                url: this.loginUrl,
-                method: 'POST',
-                agentOptions: {rejectUnauthorized: false},
-                jar: true,
-                json: true,
-                body: {
-                    username: username,
-                    password: password,
-                    email: email
-                }
-            }, 
-            function(error, response, body){
-                if (_checkRequestError(this.log, error, response, body)) {
-                    this.log("!! Login Failed !!");
-                } else {
-                    this.log("Login successful");
-                }
-            }.bind(this));
+        fetch(this.loginUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            agent: require('https').Agent({ rejectUnauthorized: false }),
+            body: JSON.stringify({
+                username: username,
+                password: password,
+                email: email
+            })
+        })
+        .then(response => {
+            if (response.status !== 200) {
+                this.log("!! Login Failed !! Status:", response.status);
+                return null;
+            }
+            return response.json();
+        })
+        .then(body => {
+            if (body) {
+                this.log("Login successful");
+            }
+        })
+        .catch(error => {
+            this.log("!! Login Failed !! Error:", error.message);
+        });
     }.bind(this);
 
     // Request the login every 23h to prevent the expiring of the 

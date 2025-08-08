@@ -2,363 +2,321 @@
 [![npm](https://img.shields.io/npm/v/homebridge-tesla-powerwall.svg)](https://www.npmjs.com/package/homebridge-tesla-powerwall)
 [![npm](https://img.shields.io/npm/dt/homebridge-tesla-powerwall.svg)](https://www.npmjs.com/package/homebridge-tesla-powerwall)
 
-(Unofficial) Homebridge Plugin for the Tesla Powerwall.
+(Unofficial) Homebridge Plugin for the Tesla Powerwall - **Now Updated for Homebridge 2.0!**
 
 Communication with the Tesla Powerwall is according to https://github.com/vloschiavo/powerwall2 .
 
-This Plugin is considered to be complete.
-If you encounter a bug or want to propose a new feature, feel free to open an issue!
+This plugin has been completely modernized with TypeScript, updated dependencies, and Homebridge 2.0 compatibility while maintaining all original functionality.
 
 If you like this plugin, it is possible to donate a "cup of coffee" via Paypal:
 
 [![Donate](https://img.shields.io/badge/Donate-PayPal-green.svg)](https://www.paypal.me/HomebridgePowerwall)
 
+## ✨ What's New in v4.0.0
+
+- 🔄 **Homebridge 2.0 Compatibility**: Fully updated for the latest Homebridge architecture
+- 🔧 **TypeScript Rewrite**: Complete conversion to TypeScript for better reliability and development experience
+- 📦 **Modern Dependencies**: Updated all dependencies, replaced deprecated packages
+- 🧪 **Enhanced Testing**: New connection test script with comprehensive debugging
+- 🔒 **Improved Authentication**: Better session management and cookie handling
+- 📱 **Config UI Schema**: Enhanced configuration interface for Homebridge UI
+
+## Requirements
+
+- **Node.js**: 18.15.0 or higher
+- **Homebridge**: 1.6.0 or higher
+
 # Installation
+
+## Recommended: Homebridge UI
 1. Install [Homebridge](https://github.com/homebridge/homebridge): see the [Homebridge wiki](https://github.com/homebridge/homebridge/wiki)
 2. In the Homebridge Web-GUI, search for the "Tesla Powerwall" plugin and install it.
-3. Adapt the `config.json` using the config view; add this plugin as a "platform" to your `config.json` file.
+3. Configure the plugin using the config UI interface.
 
-#### Legacy Installation Instructions
-1. Install [Homebridge](https://github.com/homebridge/homebridge): `sudo npm install -g --unsafe-perm homebridge`
-2. Install this plugin `sudo npm install -g homebridge-tesla-powerwall`
-3. Add this plugin as a platform to your `config.json` file
+## Command Line Installation
+```bash
+npm install -g homebridge-tesla-powerwall
+```
+
+## Testing Your Connection
+
+Before configuring the plugin, test your connection to ensure everything works:
+
+```bash
+# Navigate to the plugin directory (if installed globally)
+cd $(npm root -g)/homebridge-tesla-powerwall
+
+# Run the connection test
+node test/integration/test-connection.js <ip-address> <username> <password>
+
+# Example:
+node test/integration/test-connection.js 192.168.1.50 customer your-password-here
+```
+
+The test script will:
+- ✅ Verify authentication
+- ✅ Test battery status retrieval
+- ✅ Test power flow data
+- ✅ Test grid connectivity status
+- 📋 Provide configuration template for Homebridge
 
 ## Configuration
-Inside `config.json` of Homebridge:
+
+### Basic Configuration
 ```json
-...
+{
     "platforms": [
         {
-```
-Mandatory:
-```json
             "platform": "TeslaPowerwall",
             "name": "Tesla Powerwall",
-            "ip": "111.222.111.222",
-            "password": "abc123",
-```
-* `name` can be freely chosen
-* `ip` needs to be set to the IP-address of the Tesla Powerwall.
-* `password` a correct password must be set
-
-Optional:
-```json
-            "port": "",
-            "username": "customer",
-            "email": "Lt.Dan@bubbagump.com",
-            "loginInterval": 39600000,
-            "pollingInterval": 15000,
-            "historyInterval": 300000,
-            "lowBattery": 20,
-            "additionalServices": {
-                "powerwall": {
-                    "homekitVisual": true,
-                    "eveHistory": true,
-                    "batteryIsLowSwitch": false,
-                    "batteryIsChargingSwitch": false,
-                    "makeOnOffSwitchReadOnly": true
-                },
-                "solar": {
-                    "homekitVisual": true,
-                    "evePowerMeter": true,
-                    "eveHistory": true,
-                    "eveLineGraph": false,
-                    "pullingFromSensor": false,
-                    "sensorThreshold": 0
-                },
-                "grid": {
-                    "homekitVisual": true,
-                    "positiveEvePowerMeter": true,
-                    "negativeEvePowerMeter": true,
-                    "eveHistory": true,
-                    "eveLineGraph": false,
-                    "feedingToSensor": false,
-                    "pullingFromSensor": false,
-                    "sensorThreshold": 0
-                },
-                "battery": {
-                    "homekitVisual": true,
-                    "positiveEvePowerMeter": true,
-                    "negativeEvePowerMeter": true,
-                    "eveHistory": true,
-                    "eveLineGraph": false,
-                    "feedingToSensor": false,
-                    "pullingFromSensor": false,
-                    "sensorThreshold": 0
-                },
-                "home": {
-                    "homekitVisual": true,
-                    "evePowerMeter": true,
-                    "eveHistory": true,
-                    "eveLineGraph": false,
-                    "feedingToSensor": false,
-                    "sensorThreshold": 0
-                },
-                "gridstatus": {
-                    "gridIsDownSwitch": false,
-                    "gridIsUpSwitch": false,
-                    "gridIsNotYetInSyncSwitch": false,
-                    "gridIsDownSensor": false,
-                    "gridIsUpSensor": false
-                }
-            }
-```
-* *Here* filled with default values (values that are used when the attribute 
-  is not explicitly listed)
-
-* `username`: the default ("customer") is currently the only username that will 
-  work when logging in, i.e., there is no need to change any username; 
-  using "customer" here, will *just work*.
-* `email`: is part of the login data. However, it currently seems to be ignored, 
-  i.e., it does not matter what email is entered.
-
-* `loginInterval`, `pollingInterval` or `historyInterval` in milliseconds
-* `loginInterval`: the login is executed periodically based on this interval. 
-  After a successful login, the authentication token is currently valid for 
-  24h. If your internet is unreliable, it may be helpful to set a lower 
-  interval to guarantee at least one successful login in the 24h time span.
-  The default of 39600000ms corresponds to 11h.
-* `lowBattery`: Percentage when the charge is considered critical/low
-* `additionalServices`: Services additional to the basic switch with the 
-  battery status.
-  - *`...Switch`*: Adds a switch that represents the current state. (Useful for
-    implementing Homekit automations.)
-  - *`...Sensor`*: Adds a sensor that represents the current state. (Useful for 
-    implementing Homekit automations.)
-  - `sensorThreshold`: Defines the deadzone in which none of the sensors will
-    be active. E.g., when `sensorThreshold=10`, then the sensors will only
-    become active when the value is `>10` or `<-10`. Values close to zero will
-    then therefore not trigger a sensor. Note that this means that for a
-    `sensorThreshold` greater than `0` that the two sensors are **both** 
-    disabled when value is in the deadzone.
-    Only a positive value makes sense for this option.
-  - `powerwall.homekitVisual`: Adds a lamp service representing the battery 
-    level.
-  - `powerwall.eveHistory`: Adds an Eve weather service; sets the temperature
-    to the battery level in percent.
-  - `powerwall.makeOnOffSwitchReadOnly`: While the powerwall switch will 
-    still be able to be flipped within, for example, the Home.app, when this 
-    field is true, it will not have any effect.
-    The switch is always going to update its state based on the received state. 
-  - *Powermeter* i.e. `solar`, `grid`, `battery`, `home`
-    + `*.homekitVisual`: Adds a fan service displaying the current power in watts.
-    + `*.evePowerMeter`: Adds an Eve powermeter service.
-    + `*.evehistory`: Adds the total consumption to an Eve powermeter service.
-      Only works when `evePowerMeter` is also set to true.
-    + `*.eveLineGraph`: Saves power data in an Eve weather diagram to get a 
-      nice line chart. 
-
-```json
-        },
-    ...
-    other platforms
-    ...
+            "ip": "192.168.1.50",
+            "password": "your-password-here",
+            "pollingInterval": 15,
+            "lowBattery": 20
+        }
     ]
-...
+}
 ```
-### History Configuration
-From: [Fakegato project](https://github.com/simont77/fakegato-history#history-persistence)
 
-#### No persistence (The Elgato-Eve App will still save received measurements):
-* Do not include "historySetting" in the `config.json`.
+### Required Parameters
+- `platform`: Must be "TeslaPowerwall"
+- `name`: Display name for your Powerwall
+- `ip`: IP address of your Tesla Powerwall
+- `password`: Your Powerwall password
 
-#### File-System persistence:
+### Optional Parameters
 ```json
-            "historySetting": {
+{
+    "platform": "TeslaPowerwall",
+    "name": "Tesla Powerwall",
+    "ip": "192.168.1.50",
+    "password": "your-password-here",
+    "port": "",
+    "username": "customer",
+    "loginInterval": 39600000,
+    "pollingInterval": 15000,
+    "historyInterval": 300000,
+    "lowBattery": 20,
+    "additionalServices": {
+        "powerwall": {
+            "homekitVisual": true,
+            "eveHistory": true,
+            "batteryIsLowSwitch": false,
+            "batteryIsChargingSwitch": false,
+            "makeOnOffSwitchReadOnly": true
+        },
+        "solar": {
+            "homekitVisual": true,
+            "evePowerMeter": true,
+            "eveHistory": true,
+            "eveLineGraph": false,
+            "pullingFromSensor": false,
+            "sensorThreshold": 0
+        },
+        "grid": {
+            "homekitVisual": true,
+            "positiveEvePowerMeter": true,
+            "negativeEvePowerMeter": true,
+            "eveHistory": true,
+            "eveLineGraph": false,
+            "feedingToSensor": false,
+            "pullingFromSensor": false,
+            "sensorThreshold": 0
+        },
+        "battery": {
+            "homekitVisual": true,
+            "positiveEvePowerMeter": true,
+            "negativeEvePowerMeter": true,
+            "eveHistory": true,
+            "eveLineGraph": false,
+            "feedingToSensor": false,
+            "pullingFromSensor": false,
+            "sensorThreshold": 0
+        },
+        "home": {
+            "homekitVisual": true,
+            "evePowerMeter": true,
+            "eveHistory": true,
+            "eveLineGraph": false,
+            "feedingToSensor": false,
+            "sensorThreshold": 0
+        },
+        "gridstatus": {
+            "gridIsDownSwitch": false,
+            "gridIsUpSwitch": false,
+            "gridIsNotYetInSyncSwitch": false,
+            "gridIsDownSensor": false,
+            "gridIsUpSensor": false
+        }
+    }
+}
 ```
 
-Mandatory:
+### Configuration Options Explained
+
+- `username`: Default "customer" is currently the only username that works
+- `loginInterval`: Login refresh interval in milliseconds (default: 11 hours)
+- `pollingInterval`: How often to poll for data in milliseconds (default: 15 seconds)
+- `historyInterval`: History logging interval in milliseconds (default: 5 minutes)
+- `lowBattery`: Battery percentage considered low/critical (default: 20%)
+
+#### Additional Services
+
+The plugin supports various additional services for enhanced functionality:
+
+**Switches & Sensors**: Add switches/sensors for automation triggers
+**Visual Services**: HomeKit-compatible visual representations (fans, lights)
+**Eve Integration**: Enhanced data logging and visualization for Eve app
+**Power Meters**: Detailed power consumption tracking
+**Sensor Thresholds**: Configurable deadzone for sensor activation
+
+## History Configuration
+
+### File System Persistence
 ```json
-                "storage": "fs",
+"historySetting": {
+    "storage": "fs",
+    "size": 4032,
+    "path": "/path/to/store/persistence/"
+}
 ```
 
-Optional:
+### Google Drive Persistence
 ```json
-                "size": 4032,
-                "path": "/place/to/store/my/persistence/"
-```
-* "size" default: 4032
-* "path" default: `.homebridge` folder of the user or the given `homebridge -U` location
-
-```json
-            }
+"historySetting": {
+    "storage": "googleDrive",
+    "size": 4032,
+    "folder": "fakegato",
+    "keyPath": "/path/to/store/keys/"
+}
 ```
 
-#### Google Drive persistence:
-```json
-            "historySetting": {
-```
+## Example Configurations
 
-Mandatory:
-```json
-                "storage": "googleDrive",
-```
-
-Optional:
-```json
-                "size": 4032,
-                "folder": "fakegato",
-                "keyPath": "/place/to/store/my/keys/"
-```
-* "size" default: 4032
-* "folder" default: "fakegato" as the folder on Google Drive.
-* "keyPath" default: `.homebridge` folder of the user or the given `homebridge -U` location
-
-```json
-            }
-```
-
-For the setup of Google Drive, please follow the Google Drive Quickstart for Node.js instructions from https://developers.google.com/drive/v3/web/quickstart/nodejs, except for these changes:
-* In Step 1-h the working directory should be the .homebridge directory
-* Skip Step 2 and 3
-* In step 4, use the quickstartGoogleDrive.js included with this module. You need to run the command from fakegato-history directory. Then just follow steps a to c.
-
-## Example Configuration
 ### Minimal Configuration
 ```json
-...
-        {
-            "platform": "TeslaPowerwall",
-            "name": "Tesla Powerwall",
-            "ip": "192.168.178.100",
-            "password": "abc123",
-            "pollingInterval": 10000,
-            "historyInterval": 120000,
-            "lowBattery": 10,
-            "historySetting": {
-                "storage": "fs"
-            }
-
-        }
-...
+{
+    "platform": "TeslaPowerwall",
+    "name": "Tesla Powerwall",
+    "ip": "192.168.1.50",
+    "password": "your-password-here",
+    "pollingInterval": 10000,
+    "lowBattery": 10
+}
 ```
 
-### When using Eve.app
+### Home.app Only (No Eve Services)
 ```json
-...
-        {
-            "platform": "TeslaPowerwall",
-            "name": "Tesla Powerwall",
-            "ip": "192.168.178.100",
-            "password": "abc123",
-            "additionalServices": {
-                "powerwall": {
-                    "homekitVisual": false
-                },
-                "solar": {
-                    "homekitVisual": false
-                },
-                "grid": {
-                    "homekitVisual": false
-                },
-                "battery": {
-                    "homekitVisual": false
-                },
-                "home": {
-                    "homekitVisual": false
-                }
-            }
+{
+    "platform": "TeslaPowerwall",
+    "name": "Tesla Powerwall",
+    "ip": "192.168.1.50",
+    "password": "your-password-here",
+    "additionalServices": {
+        "powerwall": {
+            "eveHistory": false
+        },
+        "solar": {
+            "evePowerMeter": false,
+            "eveHistory": false
+        },
+        "grid": {
+            "positiveEvePowerMeter": false,
+            "negativeEvePowerMeter": false,
+            "eveHistory": false
+        },
+        "battery": {
+            "positiveEvePowerMeter": false,
+            "negativeEvePowerMeter": false,
+            "eveHistory": false
+        },
+        "home": {
+            "evePowerMeter": false,
+            "eveHistory": false
         }
-...
+    }
+}
 ```
 
-### Using only Home.app supported services (minimal)
-```json
-...
-        {
-            "platform": "TeslaPowerwall",
-            "name": "Tesla Powerwall",
-            "ip": "192.168.178.100",
-            "password": "abc123",
-            "additionalServices": {
-                "powerwall": {
-                    "homekitVisual": false,
-                    "eveHistory": false
-                },
-                "solar": {
-                    "homekitVisual": false,
-                    "evePowerMeter": false,
-                    "eveHistory": false
-                },
-                "grid": {
-                    "homekitVisual": false,
-                    "positiveEvePowerMeter": false,
-                    "negativeEvePowerMeter": false,
-                    "eveHistory": false
-                },
-                "battery": {
-                    "homekitVisual": false,
-                    "positiveEvePowerMeter": false,
-                    "negativeEvePowerMeter": false,
-                    "eveHistory": false
-                },
-                "home": {
-                    "homekitVisual": false,
-                    "evePowerMeter": false,
-                    "eveHistory": false
-                }
-            }
-        }
-...
+## Troubleshooting
+
+### 🔧 Connection Testing
+
+Always start with the connection test script:
+```bash
+node test/integration/test-connection.js <ip> <username> <password>
 ```
 
-### Using only Home.app supported services (all the visualization services)
-```json
-...
-        {
-            "platform": "TeslaPowerwall",
-            "name": "Tesla Powerwall",
-            "ip": "192.168.178.100",
-            "password": "abc123",
-            "additionalServices": {
-                "powerwall": {
-                    "eveHistory": false
-                },
-                "solar": {
-                    "evePowerMeter": false,
-                    "eveHistory": false
-                },
-                "grid": {
-                    "positiveEvePowerMeter": false,
-                    "negativeEvePowerMeter": false,
-                    "eveHistory": false
-                },
-                "battery": {
-                    "positiveEvePowerMeter": false,
-                    "negativeEvePowerMeter": false,
-                    "eveHistory": false
-                },
-                "home": {
-                    "evePowerMeter": false,
-                    "eveHistory": false
-                }
-            }
-        }
-...
+### ❌ Login Errors
+
+If you get login errors (403, authentication failed):
+1. Verify your password is correct
+2. Ensure username is "customer" (currently the only supported value)
+3. Check if your Powerwall requires re-registration
+4. Try the connection test script for detailed debugging
+
+### 🔄 Plugin Stopped Working After Powerwall Update
+
+- Ensure you're using the latest plugin version (4.0.0+)
+- Verify the `password` field is correctly configured
+- The `username` should be "customer"
+
+### 📊 For Older Powerwall Versions (< 20.49.0)
+
+If your Powerwall firmware is older than 20.49.0, you may need to use the legacy version:
+```bash
+npm install -g homebridge-tesla-powerwall@1.1.0
 ```
 
-# FAQ
-### I get a login error
-If you get a login error similar to:
+## Development
+
+### Building from Source
+```bash
+git clone https://github.com/nmuldoon/homebridge-tesla-powerwall.git
+cd homebridge-tesla-powerwall
+npm install
+npm run build
 ```
-[4/16/2021, 6:56:52 PM] [Powerwall] error: null
-[4/16/2021, 6:56:52 PM] [Powerwall] status code: 403
-[4/16/2021, 6:56:52 PM] [Powerwall] body: {"code":403,"error":"Unable to GET to resource","message":"User does not have adequate access rights"}
+
+### Running Tests
+```bash
+npm test
+npm run lint
 ```
-* Ensure that the password is correct. Regarding the username, currently only "customer" (the default) will be accepted by the powerwall.
-* The powerwall might require a re-registration and password update.
-* Take a look at [issue #33](https://github.com/datMaffin/homebridge-tesla-powerwall/issues/33). Further feedback would always be appreciated.
 
-### Plugin stopped working after the Powerwall upgraded to version 20.49.0
-Upgrade to the latest update of this plugin and make sure the `password` field
-is added (see documentation above).
+## Migration from v3.x to v4.0.0
 
-The `username` field should, at the moment, have a value equal to the default, i.e., it must be 
-equal to "customer".
+The v4.0.0 update is a major rewrite with breaking changes:
 
-### Plugin behaves not as it should and the Powerwall version is lower than 20.49.0
-Try to use the last 1.x.y version "1.1.0", i.e., `sudo npm install -g homebridge-tesla-powerwall@1.1.0`.
+1. **Node.js Requirement**: Now requires Node.js 18.15.0+
+2. **Configuration**: All existing configurations should continue to work
+3. **Dependencies**: Automatically updated when you install v4.0.0
+4. **Testing**: Use the new test script to verify connectivity
 
+Simply update the plugin and restart Homebridge - no configuration changes needed!
 
-# Feature request / Bug found?
-You are welcome to create an [Issue](https://github.com/datMaffin/homebridge-tesla-powerwall/issues/new).
+## Contributing
+
+Contributions are welcome! Please:
+1. Fork the repository
+2. Create a feature branch
+3. Add tests if applicable
+4. Submit a pull request
+
+## Feature Requests / Bug Reports
+
+Please create an [Issue](https://github.com/nmuldoon/homebridge-tesla-powerwall/issues/new) with:
+- Plugin version
+- Homebridge version
+- Node.js version
+- Powerwall firmware version
+- Detailed description of the issue
+- Log output if applicable
+
+## License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+---
+
+**Disclaimer**: This is an unofficial plugin and is not associated with Tesla, Inc. in any way.

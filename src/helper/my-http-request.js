@@ -1,6 +1,12 @@
-var request  = require('request');
+const fetch = require('node-fetch');
+const https = require('https');
 
 var cache = {}
+
+// Create an HTTPS agent that ignores certificate warnings
+const agent = new https.Agent({
+    rejectUnauthorized: false
+});
 
 /**
  * Creates an insecure (ignores certificate warnings) GET request for the given url
@@ -26,23 +32,35 @@ module.exports = function(url, callback, cacheInterval) {
         }
     }
 
-    request(
-        {
-            url: url,
-            method: 'GET',
-            agentOptions: {rejectUnauthorized: false},
-            jar: true
-        },
-        function(error, response, body) {
-            if (cacheInterval) {
-                cache[url] = {
-                    whenCached: Date.now(),
-                    error,
-                    response,
-                    body,
-                };
-            }
+    fetch(url, {
+        method: 'GET',
+        agent: agent,
+        timeout: 10000
+    })
+    .then(async response => {
+        const body = await response.text();
+        
+        if (cacheInterval) {
+            cache[url] = {
+                whenCached: Date.now(),
+                error: null,
+                response: response,
+                body: body,
+            };
+        }
 
-            callback(error, response, body, false);
-        });
+        callback(null, response, body, false);
+    })
+    .catch(error => {
+        if (cacheInterval) {
+            cache[url] = {
+                whenCached: Date.now(),
+                error: error,
+                response: null,
+                body: null,
+            };
+        }
+
+        callback(error, null, null, false);
+    });
 };

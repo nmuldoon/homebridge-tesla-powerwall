@@ -1,0 +1,10 @@
+{
+  "watch": [
+    "src-new"
+  ],
+  "ext": "ts",
+  "ignore": [
+    "dist"
+  ],
+  "exec": "npm run build && homebridge -D -U ~/.homebridge-dev -P ./dist"
+}
