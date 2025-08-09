@@ -21,14 +21,14 @@ export class GridStatusAccessory {
     this.informationService
       .setCharacteristic(this.platform.Characteristic.Manufacturer, 'Tesla')
       .setCharacteristic(this.platform.Characteristic.Model, 'Powerwall Grid Status')
-      .setCharacteristic(this.platform.Characteristic.SerialNumber, 'TeslaPowerwall-Grid-' + accessory.context.device.uniqueId);
+      .setCharacteristic(this.platform.Characteristic.SerialNumber, 'TeslaPowerwall-Grid-' + accessory.UUID);
 
     // Get the ContactSensor service if it exists, otherwise create a new one
     this.service = this.accessory.getService(this.platform.Service.ContactSensor) ||
       this.accessory.addService(this.platform.Service.ContactSensor);
 
     // Set the service name
-    this.service.setCharacteristic(this.platform.Characteristic.Name, accessory.context.device.displayName);
+    this.service.setCharacteristic(this.platform.Characteristic.Name, accessory.displayName);
 
     // Register handlers for the characteristics
     this.service.getCharacteristic(this.platform.Characteristic.ContactSensorState)

@@ -23,14 +23,14 @@ export class PowerwallAccessory {
     this.informationService
       .setCharacteristic(this.platform.Characteristic.Manufacturer, 'Tesla')
       .setCharacteristic(this.platform.Characteristic.Model, 'Powerwall')
-      .setCharacteristic(this.platform.Characteristic.SerialNumber, 'TeslaPowerwall-' + accessory.context.device.uniqueId);
+      .setCharacteristic(this.platform.Characteristic.SerialNumber, 'TeslaPowerwall-' + accessory.UUID);
 
     // Get the BatteryService service if it exists, otherwise create a new one
     this.service = this.accessory.getService(this.platform.Service.Battery) ||
       this.accessory.addService(this.platform.Service.Battery);
 
     // Set the service name
-    this.service.setCharacteristic(this.platform.Characteristic.Name, accessory.context.device.displayName);
+    this.service.setCharacteristic(this.platform.Characteristic.Name, accessory.displayName);
 
     // Register handlers for the characteristics
     this.service.getCharacteristic(this.platform.Characteristic.BatteryLevel)
