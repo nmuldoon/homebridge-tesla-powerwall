@@ -1,11 +1,11 @@
 import type { API } from 'homebridge';
 
-import { TeslaPowerwallPlatform } from './platform.js';
-import { PLATFORM_NAME } from './settings.js';
+import { TeslaPowerwallPlatform } from './platform';
+import { PLATFORM_NAME } from './settings';
 
 /**
  * This method registers the platform with Homebridge
  */
-export = (homebridge: any) => {
-  homebridge.registerPlatform(PLATFORM_NAME, TeslaPowerwallPlatform);
+export default (api: API): void => {
+  api.registerPlatform(PLATFORM_NAME, TeslaPowerwallPlatform);
 };

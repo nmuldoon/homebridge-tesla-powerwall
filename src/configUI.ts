@@ -1,6 +1,8 @@
 import type { Logger } from 'homebridge';
-import fetch from 'node-fetch';
 import { Agent } from 'https';
+
+// Use require for node-fetch to avoid ES module issues
+const fetch = require('node-fetch');
 
 interface TestConnectionConfig {
   ip: string;

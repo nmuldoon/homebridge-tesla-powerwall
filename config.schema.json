@@ -48,15 +48,36 @@
         "default": 15,
         "minimum": 5,
         "maximum": 300,
-        "description": "How often to check the Powerwall for updated data (5-300 seconds)"
+        "required": false,
+        "description": "How often to poll the Powerwall for updates (5-300 seconds)"
       },
-      "lowBattery": {
-        "title": "Low Battery Threshold (%)",
-        "type": "integer",
-        "default": 20,
-        "minimum": 1,
-        "maximum": 50,
-        "description": "Battery percentage at which to trigger low battery alerts"
+      "enableGridStatus": {
+        "title": "Enable Grid Status",
+        "type": "boolean",
+        "default": true,
+        "required": false,
+        "description": "Show grid connectivity status as a Contact Sensor"
+      },
+      "enablePowerMeters": {
+        "title": "Enable Power Meters",
+        "type": "boolean",
+        "default": true,
+        "required": false,
+        "description": "Show power flow meters (Solar, Grid, Load) as Light Bulbs with brightness representing power"
+      },
+      "enableHistory": {
+        "title": "Enable History",
+        "type": "boolean",
+        "default": false,
+        "required": false,
+        "description": "Enable historical data logging (requires eve app to view)"
+      },
+      "debug": {
+        "title": "Debug Logging",
+        "type": "boolean",
+        "default": false,
+        "required": false,
+        "description": "Enable detailed debug logging for troubleshooting"
       }
     }
   },
@@ -64,27 +85,33 @@
     {
       "type": "fieldset",
       "title": "Connection Settings",
-      "description": "Configure the connection to your Tesla Powerwall",
+      "expandable": false,
       "items": [
         "name",
         "ip",
         "port",
-        "password",
-        "username"
+        "username",
+        "password"
       ]
     },
     {
       "type": "fieldset",
       "title": "Monitoring Settings",
-      "description": "Configure how often to check the Powerwall and battery thresholds",
+      "expandable": true,
       "items": [
         "pollingInterval",
-        "lowBattery"
+        "enableGridStatus",
+        "enablePowerMeters",
+        "enableHistory"
       ]
     },
     {
-      "type": "help",
-      "helpvalue": "<h4>🚀 Quick Setup Guide:</h4><ol><li><strong>Find your Powerwall IP:</strong> Check your router's device list for 'Tesla Energy Gateway' or similar</li><li><strong>Get your password:</strong> Set via Tesla mobile app → Energy → Powerwall → Settings → 'Tesla Powerwall Password'</li><li><strong>Test manually:</strong> Run <code>node test/integration/test-connection.js [IP] customer [password]</code> from the plugin directory</li><li><strong>Save and restart:</strong> Homebridge will automatically discover your Powerwall accessories</li></ol><h4>🔧 Troubleshooting:</h4><ul><li><strong>Connection refused:</strong> Verify IP address and network connectivity</li><li><strong>Authentication failed:</strong> Double-check your password in the Tesla app</li><li><strong>Timeouts:</strong> Ensure you're on the same network as the Powerwall</li><li><strong>SSL errors:</strong> The plugin automatically handles self-signed certificates</li></ul><h4>📊 What you'll get in HomeKit:</h4><ul><li><strong>Battery Service:</strong> Level, charging state, and low battery alerts</li><li><strong>Grid Status:</strong> Contact sensor showing grid connection</li><li><strong>Power Meters:</strong> Light sensors showing load, solar, and grid power</li></ul>"
+      "type": "fieldset",
+      "title": "Troubleshooting",
+      "expandable": true,
+      "items": [
+        "debug"
+      ]
     }
   ]
 }
