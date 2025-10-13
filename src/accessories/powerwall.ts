@@ -52,7 +52,11 @@ export class PowerwallAccessory {
   async getBatteryLevel(): Promise<CharacteristicValue> {
     try {
       const data = await this.platform.httpClient.getSystemStatus();
-      this.batteryLevel = Math.round(data.percentage || 50);
+      const reportedPercentage = data.percentage;
+      const resolvedPercentage = reportedPercentage ?? this.batteryLevel ?? 50;
+      this.batteryLevel = Math.round(resolvedPercentage);
+      this.service.updateCharacteristic(this.platform.Characteristic.BatteryLevel, this.batteryLevel);
+
       this.platform.log.debug('Get Characteristic BatteryLevel ->', this.batteryLevel);
       return this.batteryLevel;
     } catch (error) {
@@ -90,13 +94,19 @@ export class PowerwallAccessory {
   async getStatusLowBattery(): Promise<CharacteristicValue> {
     try {
       const data = await this.platform.httpClient.getSystemStatus();
-      const batteryLevel = data.percentage || 50;
-      const lowBatteryThreshold = this.platform.config.lowBattery || 20;
-      
-      this.lowBatteryStatus = batteryLevel <= lowBatteryThreshold ? 
+      const reportedPercentage = data.percentage;
+      const resolvedPercentage = reportedPercentage ?? this.batteryLevel ?? 50;
+      this.batteryLevel = Math.round(resolvedPercentage);
+      this.service.updateCharacteristic(this.platform.Characteristic.BatteryLevel, this.batteryLevel);
+
+      const lowBatteryThreshold = this.platform.config.lowBattery ?? 20;
+
+      this.lowBatteryStatus = this.batteryLevel <= lowBatteryThreshold ?
         this.platform.Characteristic.StatusLowBattery.BATTERY_LEVEL_LOW :
         this.platform.Characteristic.StatusLowBattery.BATTERY_LEVEL_NORMAL;
-      
+
+      this.service.updateCharacteristic(this.platform.Characteristic.StatusLowBattery, this.lowBatteryStatus);
+
       this.platform.log.debug('Get Characteristic StatusLowBattery ->', this.lowBatteryStatus);
       return this.lowBatteryStatus;
     } catch (error) {
