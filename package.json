@@ -1,6 +1,6 @@
 {
   "name": "homebridge-tesla-powerwall",
-  "version": "4.0.0",
+  "version": "4.0.1",
   "description": "Homebridge plugin for the Tesla Powerwall (based off the original by datMaffin)",
   "main": "dist/index.js",
   "scripts": {
@@ -31,8 +31,8 @@
   },
   "homepage": "https://github.com/nmuldoon/homebridge-tesla-powerwall#readme",
   "engines": {
-    "node": ">=18.0.0",
-    "homebridge": ">=1.0.0"
+    "node": "^20.18.0 || ^22.10.0 || ^24.0.0",
+    "homebridge": "^1.6.0 || ^2.0.0-beta.0"
   },
   "dependencies": {
     "fakegato-history": "^0.6.4",
