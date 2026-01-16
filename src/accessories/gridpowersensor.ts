@@ -35,7 +35,13 @@ export class GridPowerSensorAccessory {
     private readonly accessory: PlatformAccessory,
   ) {
     // Determine sensor type from device context
-    this.sensorType = accessory.context.device.sensorType || 'feeding';
+    this.sensorType = accessory.context.device.sensorType;
+    
+    // Validate sensor type
+    if (!this.sensorType || (this.sensorType !== 'feeding' && this.sensorType !== 'pulling')) {
+      this.platform.log.error(`Invalid or missing sensor type for ${accessory.displayName}. Expected 'feeding' or 'pulling', got: ${this.sensorType}`);
+      this.sensorType = 'feeding'; // Fallback to prevent crash
+    }
     
     // Set accessory information
     this.informationService = this.accessory.getService(this.platform.Service.AccessoryInformation)!;

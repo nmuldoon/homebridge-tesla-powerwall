@@ -15,9 +15,9 @@ const { Agent } = require('https');
 // Configuration
 const config = {
   ip: process.env.POWERWALL_IP || process.argv[2] || '',
-  username: process.env.POWERWALL_USERNAME || process.argv[3] || 'customer',
-  password: process.env.POWERWALL_PASSWORD || process.argv[4] || '',
-  threshold: parseInt(process.env.GRID_THRESHOLD || process.argv[5] || '50', 10),
+  password: process.env.POWERWALL_PASSWORD || process.argv[3] || '',
+  username: process.env.POWERWALL_USERNAME || 'customer',
+  threshold: parseInt(process.env.GRID_THRESHOLD || process.argv[4] || '50', 10),
 };
 
 // Show usage if required parameters are missing
@@ -29,16 +29,15 @@ if (!config.ip || !config.password) {
   console.log('power flow data from your Tesla Powerwall.');
   console.log('');
   console.log('Usage:');
-  console.log('  node test/integration/validate-grid-sensors.js <ip> <username> <password> [threshold]');
+  console.log('  node test/integration/validate-grid-sensors.js <ip> <password> [threshold]');
   console.log('');
   console.log('Parameters:');
   console.log('  ip        - IP address of your Tesla Powerwall (required)');
   console.log('  password  - Tesla Powerwall password (required)');
-  console.log('  username  - Username (default: "customer")');
   console.log('  threshold - Grid sensor threshold in watts (default: 50)');
   console.log('');
   console.log('Example:');
-  console.log('  node test/integration/validate-grid-sensors.js 192.168.1.100 customer mypassword 50');
+  console.log('  node test/integration/validate-grid-sensors.js 192.168.1.100 mypassword 50');
   console.log('');
   process.exit(1);
 }
@@ -50,7 +49,7 @@ async function validateGridSensors() {
     console.log('');
     console.log('📡 Configuration:');
     console.log(`   IP Address: ${config.ip}`);
-    console.log(`   Username: ${config.username}`);
+    console.log(`   Username: ${config.username} (default)`);
     console.log(`   Threshold: ${config.threshold}W`);
     console.log('');
 

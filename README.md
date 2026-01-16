@@ -74,10 +74,10 @@ To validate that the grid power sensors will work correctly:
 
 ```bash
 # Run the grid sensor validator
-node test/integration/validate-grid-sensors.js <ip-address> <username> <password> [threshold]
+node test/integration/validate-grid-sensors.js <ip-address> <password> [threshold]
 
 # Example with 50W threshold:
-node test/integration/validate-grid-sensors.js 192.168.1.50 customer your-password-here 50
+node test/integration/validate-grid-sensors.js 192.168.1.50 your-password-here 50
 ```
 
 The validator will:
