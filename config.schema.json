@@ -58,6 +58,22 @@
         "required": false,
         "description": "Show grid connectivity status as a Contact Sensor"
       },
+      "enableGridPowerSensors": {
+        "title": "Enable Grid Power Sensors",
+        "type": "boolean",
+        "default": true,
+        "required": false,
+        "description": "Show sensors that detect when power is feeding to or pulling from the grid (for automation triggers)"
+      },
+      "gridSensorThreshold": {
+        "title": "Grid Sensor Threshold (watts)",
+        "type": "integer",
+        "default": 50,
+        "minimum": 0,
+        "maximum": 1000,
+        "required": false,
+        "description": "Power threshold in watts for grid sensor activation (helps avoid false triggers from noise)"
+      },
       "enablePowerMeters": {
         "title": "Enable Power Meters",
         "type": "boolean",
@@ -101,6 +117,8 @@
       "items": [
         "pollingInterval",
         "enableGridStatus",
+        "enableGridPowerSensors",
+        "gridSensorThreshold",
         "enablePowerMeters",
         "enableHistory"
       ]

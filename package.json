@@ -1,6 +1,6 @@
 {
   "name": "homebridge-tesla-powerwall",
-  "version": "4.0.1",
+  "version": "4.1.0",
   "description": "Homebridge plugin for the Tesla Powerwall (based off the original by datMaffin)",
   "main": "dist/index.js",
   "scripts": {

@@ -12,7 +12,15 @@ If you like this plugin, it is possible to donate a "cup of coffee" via Paypal:
 
 [![Donate](https://img.shields.io/badge/Donate-PayPal-green.svg)](https://www.paypal.me/HomebridgePowerwall)
 
-## ✨ What's New in v4.0.0
+## ✨ What's New in v4.1.0
+
+- 🔌 **Grid Power Sensors**: New sensors that trigger when power is feeding to or pulling from the grid (perfect for automations!)
+- 🔄 **Updated Dependencies**: All dependencies updated to latest compatible versions
+- 🔒 **Security Fixes**: Resolved npm audit vulnerabilities
+- 🎯 **TypeScript Improvements**: Better type definitions for API responses
+- 📊 **Configurable Thresholds**: Set power thresholds to avoid false sensor triggers from noise
+
+### Previous Updates (v4.0.0)
 
 - 🔄 **Homebridge 2.0 Compatibility**: Fully updated for the latest Homebridge architecture
 - 🔧 **TypeScript Rewrite**: Complete conversion to TypeScript for better reliability and development experience
@@ -72,7 +80,8 @@ The test script will:
             "ip": "192.168.1.50",
             "password": "your-password-here",
             "pollingInterval": 15,
-            "lowBattery": 20
+            "enableGridPowerSensors": true,
+            "gridSensorThreshold": 50
         }
     ]
 }
@@ -91,105 +100,120 @@ The test script will:
     "name": "Tesla Powerwall",
     "ip": "192.168.1.50",
     "password": "your-password-here",
-    "port": "",
+    "port": "443",
     "username": "customer",
-    "loginInterval": 39600000,
-    "pollingInterval": 15000,
-    "historyInterval": 300000,
-    "lowBattery": 20,
-    "additionalServices": {
-        "powerwall": {
-            "homekitVisual": true,
-            "eveHistory": true,
-            "batteryIsLowSwitch": false,
-            "batteryIsChargingSwitch": false,
-            "makeOnOffSwitchReadOnly": true
-        },
-        "solar": {
-            "homekitVisual": true,
-            "evePowerMeter": true,
-            "eveHistory": true,
-            "eveLineGraph": false,
-            "pullingFromSensor": false,
-            "sensorThreshold": 0
-        },
-        "grid": {
-            "homekitVisual": true,
-            "positiveEvePowerMeter": true,
-            "negativeEvePowerMeter": true,
-            "eveHistory": true,
-            "eveLineGraph": false,
-            "feedingToSensor": false,
-            "pullingFromSensor": false,
-            "sensorThreshold": 0
-        },
-        "battery": {
-            "homekitVisual": true,
-            "positiveEvePowerMeter": true,
-            "negativeEvePowerMeter": true,
-            "eveHistory": true,
-            "eveLineGraph": false,
-            "feedingToSensor": false,
-            "pullingFromSensor": false,
-            "sensorThreshold": 0
-        },
-        "home": {
-            "homekitVisual": true,
-            "evePowerMeter": true,
-            "eveHistory": true,
-            "eveLineGraph": false,
-            "feedingToSensor": false,
-            "sensorThreshold": 0
-        },
-        "gridstatus": {
-            "gridIsDownSwitch": false,
-            "gridIsUpSwitch": false,
-            "gridIsNotYetInSyncSwitch": false,
-            "gridIsDownSensor": false,
-            "gridIsUpSensor": false
-        }
-    }
+    "pollingInterval": 15,
+    "enableGridStatus": true,
+    "enableGridPowerSensors": true,
+    "gridSensorThreshold": 50,
+    "enablePowerMeters": true,
+    "enableHistory": false,
+    "debug": false
 }
 ```
 
 ### Configuration Options Explained
 
-- `username`: Default "customer" is currently the only username that works
-- `loginInterval`: Login refresh interval in milliseconds (default: 11 hours)
-- `pollingInterval`: How often to poll for data in milliseconds (default: 15 seconds)
-- `historyInterval`: History logging interval in milliseconds (default: 5 minutes)
-- `lowBattery`: Battery percentage considered low/critical (default: 20%)
+#### Connection Settings
+- `ip`: **Required** - The IP address of your Tesla Powerwall on your local network
+- `password`: **Required** - Your Tesla Powerwall password (set via the Tesla app)
+- `port`: Port number (default: "443")
+- `username`: Username (default: "customer" - this is standard for all Powerwalls)
 
-#### Additional Services
+#### Monitoring Settings
+- `pollingInterval`: How often to poll the Powerwall for updates in seconds (default: 15, min: 5, max: 300)
+- `enableGridStatus`: Show grid connectivity status as a Contact Sensor (default: true)
+- `enableGridPowerSensors`: Show sensors for grid power flow detection (default: true) ⭐ **NEW**
+- `gridSensorThreshold`: Power threshold in watts for sensor activation (default: 50W, helps avoid false triggers) ⭐ **NEW**
+- `enablePowerMeters`: Show power flow meters (Solar, Grid, Load) as Light Sensors (default: true)
+- `enableHistory`: Enable historical data logging for Eve app (default: false)
 
-The plugin supports various additional services for enhanced functionality:
+#### Troubleshooting
+- `debug`: Enable detailed debug logging (default: false)
 
-**Switches & Sensors**: Add switches/sensors for automation triggers
-**Visual Services**: HomeKit-compatible visual representations (fans, lights)
-**Eve Integration**: Enhanced data logging and visualization for Eve app
-**Power Meters**: Detailed power consumption tracking
-**Sensor Thresholds**: Configurable deadzone for sensor activation
+## Features
 
-## History Configuration
+### Accessories Provided
 
-### File System Persistence
-```json
-"historySetting": {
-    "storage": "fs",
-    "size": 4032,
-    "path": "/path/to/store/persistence/"
-}
+1. **Battery Status** - Shows battery charge level, charging state, and low battery alerts
+2. **Grid Status Sensor** - Contact sensor that shows if the grid is connected or disconnected
+3. **Grid Feeding Sensor** ⭐ **NEW** - Contact sensor that triggers when power is being fed to the grid (export)
+4. **Grid Pulling Sensor** ⭐ **NEW** - Contact sensor that triggers when power is being pulled from the grid (import)
+5. **Power Meters** - Light sensors showing power flow for Solar, Grid, and Load
+
+### Grid Power Sensors - Automation Examples ⭐ **NEW**
+
+The new grid power sensors enable powerful HomeKit automations:
+
+#### Example 1: Get notified when exporting power to the grid
+```
+When: Grid Feeding Sensor detects contact
+Then: Send notification "You're selling power to the grid! 💰"
 ```
 
-### Google Drive Persistence
-```json
-"historySetting": {
-    "storage": "googleDrive",
-    "size": 4032,
-    "folder": "fakegato",
-    "keyPath": "/path/to/store/keys/"
-}
+#### Example 2: Notify when importing expensive peak power
 ```
+When: Grid Pulling Sensor detects contact
+AND Time is between 4:00 PM and 9:00 PM
+Then: Send notification "Using peak power from grid ⚡"
+```
+
+#### Example 3: Turn off non-essential loads when pulling from grid
+```
+When: Grid Pulling Sensor detects contact
+Then: 
+  - Turn off pool pump
+  - Turn off EV charger
+  - Send notification "Reducing load to minimize grid usage"
+```
+
+#### Example 4: Start charging devices when exporting to grid
+```
+When: Grid Feeding Sensor detects contact
+AND Battery level > 80%
+Then: 
+  - Start EV charging
+  - Turn on pool pump
+  - Send notification "Free solar power available! ☀️"
+```
+
+### Sensor Threshold Configuration
+
+The `gridSensorThreshold` setting (default 50W) prevents false triggers from minor power fluctuations:
+- **50W (default)**: Good balance for most installations
+- **100W+**: Recommended for systems with frequent small fluctuations
+- **0W**: Maximum sensitivity, may cause false triggers
+
+## Legacy Configuration (from v3.x)
+
+For users upgrading from version 3.x, the plugin has been simplified. The old `additionalServices` configuration is no longer needed. Simply use the new boolean flags:
+- `enableGridStatus` - replaces gridstatus options
+- `enableGridPowerSensors` - NEW feature for grid power flow detection
+- `enablePowerMeters` - replaces individual meter options
+- `enableHistory` - replaces eveHistory options
+
+## API Limitations
+
+### Operation Mode Control (Issue #54)
+
+**Important Note**: Due to recent Tesla Powerwall firmware updates, **operation mode control (switching between Self-Powered, Time-based, or changing Backup Reserve) is NOT available via the local API**. 
+
+According to Tesla's architecture:
+- The **local API** (used by this plugin) provides read-only access to system status and power flow data
+- **Operation mode changes** require the Tesla Fleet API, which needs cloud authentication
+
+If you need to automate operation mode changes, you have these options:
+1. Use the Tesla mobile app manually
+2. Integrate with Tesla's Fleet API (requires developer account and cloud access)
+3. Use a separate automation system that supports the Tesla Fleet API
+
+This plugin focuses on what's possible with the local API:
+- Real-time monitoring of battery, grid, solar, and load
+- Grid power flow detection (feeding/pulling sensors)
+- Grid connectivity status
+- Triggering HomeKit automations based on power flow
+
+We may add Tesla Fleet API support in a future version if there's sufficient demand and if it can be implemented without compromising security or requiring complex cloud setups.
 
 ## Example Configurations
 
@@ -200,41 +224,38 @@ The plugin supports various additional services for enhanced functionality:
     "name": "Tesla Powerwall",
     "ip": "192.168.1.50",
     "password": "your-password-here",
-    "pollingInterval": 10000,
-    "lowBattery": 10
+    "pollingInterval": 10
 }
 ```
 
-### Home.app Only (No Eve Services)
+### Full Configuration with All Features
 ```json
 {
     "platform": "TeslaPowerwall",
     "name": "Tesla Powerwall",
     "ip": "192.168.1.50",
     "password": "your-password-here",
-    "additionalServices": {
-        "powerwall": {
-            "eveHistory": false
-        },
-        "solar": {
-            "evePowerMeter": false,
-            "eveHistory": false
-        },
-        "grid": {
-            "positiveEvePowerMeter": false,
-            "negativeEvePowerMeter": false,
-            "eveHistory": false
-        },
-        "battery": {
-            "positiveEvePowerMeter": false,
-            "negativeEvePowerMeter": false,
-            "eveHistory": false
-        },
-        "home": {
-            "evePowerMeter": false,
-            "eveHistory": false
-        }
-    }
+    "pollingInterval": 15,
+    "enableGridStatus": true,
+    "enableGridPowerSensors": true,
+    "gridSensorThreshold": 50,
+    "enablePowerMeters": true,
+    "enableHistory": false,
+    "debug": false
+}
+```
+
+### Configuration with Disabled Sensors
+```json
+{
+    "platform": "TeslaPowerwall",
+    "name": "Tesla Powerwall",
+    "ip": "192.168.1.50",
+    "password": "your-password-here",
+    "pollingInterval": 15,
+    "enableGridStatus": false,
+    "enableGridPowerSensors": false,
+    "enablePowerMeters": false
 }
 ```
 
@@ -257,9 +278,17 @@ If you get login errors (403, authentication failed):
 
 ### 🔄 Plugin Stopped Working After Powerwall Update
 
-- Ensure you're using the latest plugin version (4.0.0+)
+- Ensure you're using the latest plugin version (4.1.0+)
 - Verify the `password` field is correctly configured
 - The `username` should be "customer"
+
+### ⚡ Grid Power Sensors Not Triggering
+
+If the new grid power sensors aren't working as expected:
+1. Check the `gridSensorThreshold` setting - you may need to adjust it
+2. Use debug logging to see actual power values: `"debug": true`
+3. Verify your Powerwall is actually feeding/pulling power above the threshold
+4. Check the Homebridge logs for sensor state changes
 
 ### 📊 For Older Powerwall Versions (< 20.49.0)
 
@@ -284,16 +313,21 @@ npm test
 npm run lint
 ```
 
-## Migration from v3.x to v4.0.0
+## Migration from v3.x to v4.1.0
 
-The v4.0.0 update is a major rewrite with breaking changes:
+The v4.x updates include major improvements:
 
 1. **Node.js Requirement**: Now requires Node.js 18.15.0+
-2. **Configuration**: All existing configurations should continue to work
-3. **Dependencies**: Automatically updated when you install v4.0.0
-4. **Testing**: Use the new test script to verify connectivity
+2. **Simplified Configuration**: The complex `additionalServices` object has been simplified to simple boolean flags
+3. **New Features**: Grid power sensors for automation triggers
+4. **Dependencies**: All dependencies updated to latest versions
+5. **Testing**: Use the new test script to verify connectivity
 
-Simply update the plugin and restart Homebridge - no configuration changes needed!
+### Breaking Changes from v3.x
+- Configuration format has been simplified (old format still works but is deprecated)
+- Some advanced Eve features may not be available in v4.x
+
+Simply update the plugin and restart Homebridge. Your existing configuration should continue to work, but consider migrating to the new simpler format.
 
 ## Contributing
 
