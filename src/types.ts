@@ -50,11 +50,13 @@ export interface MetersAggregatesResponse {
 
 export interface SystemStatusResponse {
   percentage: number;
-  [key: string]: any;
+  nominal_energy_remaining?: number;
+  nominal_full_pack_energy?: number;
+  [key: string]: string | number | boolean | undefined;
 }
 
 export interface GridStatusResponse {
   grid_status: string;
   grid_services_active: boolean;
-  [key: string]: any;
+  [key: string]: string | number | boolean | undefined;
 }

@@ -12,6 +12,7 @@ export class PowerMeterAccessory {
   // Current power reading
   private currentPower = 0;
   private meterType: string;
+  private pollingIntervalId?: NodeJS.Timeout;
 
   constructor(
     private readonly platform: TeslaPowerwallPlatform,
@@ -101,7 +102,7 @@ export class PowerMeterAccessory {
   private startPolling(): void {
     const pollingInterval = (this.platform.config.pollingInterval || 15) * 1000;
 
-    setInterval(async () => {
+    this.pollingIntervalId = setInterval(async () => {
       try {
         const power = await this.getCurrentPower();
         this.service.updateCharacteristic(this.platform.Characteristic.CurrentAmbientLightLevel, power);
@@ -109,5 +110,15 @@ export class PowerMeterAccessory {
         this.platform.log.error(`Error during ${this.meterType} power polling update:`, error);
       }
     }, pollingInterval);
+  }
+
+  /**
+   * Cleanup resources when accessory is removed
+   */
+  destroy(): void {
+    if (this.pollingIntervalId) {
+      clearInterval(this.pollingIntervalId);
+      this.pollingIntervalId = undefined;
+    }
   }
 }

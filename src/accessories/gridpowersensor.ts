@@ -16,6 +16,7 @@ export class GridPowerSensorAccessory {
   // Current sensor state (0 = normal, 1 = detected)
   private sensorState = 0;
   private sensorType: 'feeding' | 'pulling';
+  private pollingIntervalId?: NodeJS.Timeout;
   
   constructor(
     private readonly platform: TeslaPowerwallPlatform,
@@ -94,7 +95,7 @@ export class GridPowerSensorAccessory {
   private startPolling(): void {
     const pollingInterval = (this.platform.config.pollingInterval || 15) * 1000;
 
-    setInterval(async () => {
+    this.pollingIntervalId = setInterval(async () => {
       try {
         const sensorState = await this.getSensorState();
         this.service.updateCharacteristic(this.platform.Characteristic.ContactSensorState, sensorState);
@@ -102,5 +103,15 @@ export class GridPowerSensorAccessory {
         this.platform.log.error(`Error during grid ${this.sensorType} sensor polling update:`, error);
       }
     }, pollingInterval);
+  }
+
+  /**
+   * Cleanup resources when accessory is removed
+   */
+  destroy(): void {
+    if (this.pollingIntervalId) {
+      clearInterval(this.pollingIntervalId);
+      this.pollingIntervalId = undefined;
+    }
   }
 }
