@@ -68,6 +68,24 @@ The test script will:
 - ✅ Test grid connectivity status
 - 📋 Provide configuration template for Homebridge
 
+### Testing Grid Power Sensors ⭐ **NEW**
+
+To validate that the grid power sensors will work correctly:
+
+```bash
+# Run the grid sensor validator
+node test/integration/validate-grid-sensors.js <ip-address> <username> <password> [threshold]
+
+# Example with 50W threshold:
+node test/integration/validate-grid-sensors.js 192.168.1.50 customer your-password-here 50
+```
+
+The validator will:
+- ✅ Show current power flow (grid, solar, battery, load)
+- ✅ Display grid sensor states based on your threshold
+- ✅ Provide recommendations for automation setup
+- 💡 Help you tune the threshold for your system
+
 ## Configuration
 
 ### Basic Configuration

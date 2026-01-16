@@ -3,11 +3,17 @@ import type { TeslaPowerwallPlatform } from '../platform.js';
 
 /**
  * Platform Accessory for Tesla Powerwall Grid Power Flow Sensors
- * Triggers notifications when the system is feeding to or pulling power from the grid
  * 
- * This accessory creates two sensors:
+ * Triggers notifications when the system is feeding to or pulling power from the grid.
+ * Uses the /api/meters/aggregates endpoint to monitor real-time power flow.
+ * 
+ * This accessory creates two sensor types:
  * 1. Feeding to Grid - triggers when power flows to the grid (negative site power)
  * 2. Pulling from Grid - triggers when power flows from the grid (positive site power)
+ * 
+ * Both sensors use configurable thresholds to avoid false triggers from minor fluctuations.
+ * 
+ * @class GridPowerSensorAccessory
  */
 export class GridPowerSensorAccessory {
   private service: Service;
@@ -18,6 +24,12 @@ export class GridPowerSensorAccessory {
   private sensorType: 'feeding' | 'pulling';
   private pollingIntervalId?: NodeJS.Timeout;
   
+  /**
+   * Constructor for GridPowerSensorAccessory
+   * 
+   * @param platform - Reference to the main platform
+   * @param accessory - PlatformAccessory instance from Homebridge
+   */
   constructor(
     private readonly platform: TeslaPowerwallPlatform,
     private readonly accessory: PlatformAccessory,
@@ -50,8 +62,14 @@ export class GridPowerSensorAccessory {
 
   /**
    * Handle requests to get the current sensor state
-   * Returns CONTACT_DETECTED (1) when condition is met (feeding/pulling)
-   * Returns CONTACT_NOT_DETECTED (0) when condition is not met
+   * 
+   * For feeding sensor: Returns CONTACT_DETECTED when site power < -threshold (exporting)
+   * For pulling sensor: Returns CONTACT_DETECTED when site power > threshold (importing)
+   * 
+   * The threshold helps avoid false triggers from minor power fluctuations.
+   * Default threshold is 50W, configurable via gridSensorThreshold config option.
+   * 
+   * @returns {Promise<CharacteristicValue>} The current sensor state
    */
   async getSensorState(): Promise<CharacteristicValue> {
     try {
@@ -91,6 +109,11 @@ export class GridPowerSensorAccessory {
 
   /**
    * Start polling for updates and push them to HomeKit
+   * 
+   * Polls the Powerwall API at the configured interval (default 15 seconds)
+   * and updates the HomeKit characteristic when the sensor state changes.
+   * 
+   * Stores the interval ID to allow proper cleanup when accessory is removed.
    */
   private startPolling(): void {
     const pollingInterval = (this.platform.config.pollingInterval || 15) * 1000;
@@ -107,6 +130,9 @@ export class GridPowerSensorAccessory {
 
   /**
    * Cleanup resources when accessory is removed
+   * 
+   * Stops the polling interval to prevent memory leaks.
+   * Should be called when the accessory is being destroyed or removed.
    */
   destroy(): void {
     if (this.pollingIntervalId) {
