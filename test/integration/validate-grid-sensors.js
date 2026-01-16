@@ -5,6 +5,9 @@
  * 
  * This script validates that the grid power sensors are working correctly
  * by checking the power flow data from the Powerwall API.
+ * 
+ * Note: Uses CommonJS (require) for compatibility with Node.js execution
+ * as a standalone script without TypeScript compilation.
  */
 
 /* eslint-disable no-console */

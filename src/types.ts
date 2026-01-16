@@ -23,6 +23,18 @@ export interface TeslaPowerwallPlatformInterface extends DynamicPlatformPlugin {
  * API Response Types
  */
 
+/**
+ * Meter data from the Tesla Powerwall aggregates endpoint
+ * 
+ * Represents power, energy, and electrical characteristics for a specific meter
+ * (site/grid, battery, load, solar, etc.)
+ * 
+ * Note: Power values can be positive or negative depending on flow direction:
+ * - Site/Grid: Positive = importing, Negative = exporting
+ * - Battery: Positive = discharging, Negative = charging
+ * - Solar: Always positive when generating
+ * - Load: Always positive when consuming
+ */
 export interface MeterData {
   last_communication_time: string;
   instant_power: number;

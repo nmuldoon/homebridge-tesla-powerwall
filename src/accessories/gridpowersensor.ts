@@ -83,7 +83,8 @@ export class GridPowerSensorAccessory {
       const sitePower = data.site?.instant_power || 0;
       
       // Get threshold from config, default to 50W to avoid noise
-      const threshold = this.platform.config.gridSensorThreshold || 50;
+      // Use nullish coalescing to allow 0 as a valid threshold value
+      const threshold = this.platform.config.gridSensorThreshold ?? 50;
       
       let isConditionMet = false;
       

@@ -103,7 +103,7 @@ export class TeslaPowerwallPlatform implements TeslaPowerwallPlatformInterface {
         await this.createGridStatusAccessory();
       }
 
-      // Create grid power sensors if enabled
+      // Create grid power sensors if enabled (defaults to true for backward compatibility)
       if (this.config.enableGridPowerSensors !== false) {
         await this.createGridPowerSensors();
       }
