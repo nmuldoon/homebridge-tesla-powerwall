@@ -16,9 +16,8 @@ const { CookieJar } = require('tough-cookie');
 // Configuration interface
 const config = {
   ip: process.env.POWERWALL_IP || process.argv[2] || "",
-  username: process.env.POWERWALL_USERNAME || process.argv[3] || "customer",
-  password: process.env.POWERWALL_PASSWORD || process.argv[4] || "",
-  port: process.env.POWERWALL_PORT || process.argv[6] || "443",
+  password: process.env.POWERWALL_PASSWORD || process.argv[3] || "",
+  port: process.env.POWERWALL_PORT || process.argv[4] || "443",
 };
 
 // Show usage if required parameters are missing
@@ -30,15 +29,14 @@ if (!config.ip || !config.password) {
   console.log("that your credentials and network settings are working correctly.");
   console.log("");
   console.log("Usage:");
-  console.log("  node test/integration/test-connection.js <ip> <username> <password>");
+  console.log("  node test/integration/test-connection.js <ip> <password>");
   console.log("");
   console.log("Parameters:");
   console.log("  ip       - IP address of your Tesla Powerwall (required)");
   console.log("  password - Tesla Powerwall password (required)");
-  console.log("  username - Username (default: 'customer')");
   console.log("");
   console.log("Example:");
-  console.log("  node test/integration/test-connection.js 192.168.1.100 username password");
+  console.log("  node test/integration/test-connection.js 192.168.1.100 password");
   console.log("");
   process.exit(1);
 }
@@ -50,7 +48,6 @@ async function testConnection() {
     console.log("");
     console.log("📡 Configuration:");
     console.log(`   IP Address: ${config.ip}`);
-    console.log(`   Username: ${config.username}`);
     console.log(`   Password: ${'*'.repeat(config.password.length)}`);
     console.log("");
 
@@ -75,7 +72,7 @@ async function testConnection() {
       },
       agent: agent,
       body: JSON.stringify({
-        username: config.username,
+        username: 'customer', // Tesla Powerwall only supports 'customer' as username
         password: config.password,
       }),
       timeout: 10000,
@@ -167,7 +164,6 @@ async function testConnection() {
       "ip": config.ip,
       "port": config.port !== "443" ? config.port : undefined,
       "password": "your-password-here",
-      "username": config.username !== "customer" ? config.username : undefined,
       "pollingInterval": 15,
       "lowBattery": 20
     }, null, 2));

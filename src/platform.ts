@@ -52,7 +52,7 @@ export class TeslaPowerwallPlatform implements TeslaPowerwallPlatformInterface {
     this.httpClient = new HttpClient(
       config.ip,
       config.port || '443',
-      config.username || 'customer',
+      'customer', // Tesla Powerwall only supports 'customer' as username
       config.password,
       this.log,
     );

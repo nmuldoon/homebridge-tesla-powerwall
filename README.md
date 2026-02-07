@@ -55,10 +55,10 @@ Before configuring the plugin, test your connection to ensure everything works:
 cd $(npm root -g)/homebridge-tesla-powerwall
 
 # Run the connection test
-node test/integration/test-connection.js <ip-address> <username> <password>
+node test/integration/test-connection.js <ip-address> <password>
 
 # Example:
-node test/integration/test-connection.js 192.168.1.50 customer your-password-here
+node test/integration/test-connection.js 192.168.1.50 your-password-here
 ```
 
 The test script will:
@@ -119,7 +119,6 @@ The validator will:
     "ip": "192.168.1.50",
     "password": "your-password-here",
     "port": "443",
-    "username": "customer",
     "pollingInterval": 15,
     "enableGridStatus": true,
     "enableGridPowerSensors": true,
@@ -136,7 +135,6 @@ The validator will:
 - `ip`: **Required** - The IP address of your Tesla Powerwall on your local network
 - `password`: **Required** - Your Tesla Powerwall password (set via the Tesla app)
 - `port`: Port number (default: "443")
-- `username`: Username (default: "customer" - this is standard for all Powerwalls)
 
 #### Monitoring Settings
 - `pollingInterval`: How often to poll the Powerwall for updates in seconds (default: 15, min: 5, max: 300)
@@ -290,15 +288,13 @@ node test/integration/test-connection.js <ip> <username> <password>
 
 If you get login errors (403, authentication failed):
 1. Verify your password is correct
-2. Ensure username is "customer" (currently the only supported value)
-3. Check if your Powerwall requires re-registration
-4. Try the connection test script for detailed debugging
+2. Check if your Powerwall requires re-registration
+3. Try the connection test script for detailed debugging
 
 ### 🔄 Plugin Stopped Working After Powerwall Update
 
 - Ensure you're using the latest plugin version (4.1.0+)
 - Verify the `password` field is correctly configured
-- The `username` should be "customer"
 
 ### ⚡ Grid Power Sensors Not Triggering
 
