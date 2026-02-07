@@ -19,7 +19,9 @@ var Characteristic = Homebridge.hap.Characteristic;
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 // Load Plugin
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-require('../index.js')(Homebridge);
+var indexModule = require('../dist/index.js');
+var registrationFunction = indexModule.default || indexModule;
+registrationFunction(Homebridge);
 var PlatformType = Homebridge.PlatformType;
 
 
