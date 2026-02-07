@@ -103,6 +103,11 @@ export class TeslaPowerwallPlatform implements TeslaPowerwallPlatformInterface {
         await this.createGridStatusAccessory();
       }
 
+      // Create grid power sensors if enabled (defaults to true for backward compatibility)
+      if (this.config.enableGridPowerSensors !== false) {
+        await this.createGridPowerSensors();
+      }
+
       // Create power meter accessories if enabled
       if (this.config.enablePowerMeters !== false) {
         await this.createPowerMeterAccessories();
@@ -162,6 +167,51 @@ export class TeslaPowerwallPlatform implements TeslaPowerwallPlatformInterface {
     }
 
     this.discoveredCacheUUIDs.push(uuid);
+  }
+
+  /**
+   * Create grid power sensor accessories
+   */
+  private async createGridPowerSensors(): Promise<void> {
+    const { GridPowerSensorAccessory } = await import('./accessories/gridpowersensor');
+    
+    // Create feeding to grid sensor
+    const feedingUuid = this.api.hap.uuid.generate('powerwall-grid-feeding-sensor');
+    const feedingDisplayName = 'Tesla Powerwall Grid Feeding';
+    
+    const existingFeedingAccessory = this.accessories.get(feedingUuid);
+    
+    if (existingFeedingAccessory) {
+      this.log.info('Restoring existing accessory from cache:', existingFeedingAccessory.displayName);
+      new GridPowerSensorAccessory(this, existingFeedingAccessory);
+    } else {
+      this.log.info('Adding new accessory:', feedingDisplayName);
+      const accessory = new this.api.platformAccessory(feedingDisplayName, feedingUuid);
+      accessory.context.device = { type: 'gridpowersensor', sensorType: 'feeding' };
+      new GridPowerSensorAccessory(this, accessory);
+      this.api.registerPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [accessory]);
+    }
+    
+    this.discoveredCacheUUIDs.push(feedingUuid);
+    
+    // Create pulling from grid sensor
+    const pullingUuid = this.api.hap.uuid.generate('powerwall-grid-pulling-sensor');
+    const pullingDisplayName = 'Tesla Powerwall Grid Pulling';
+    
+    const existingPullingAccessory = this.accessories.get(pullingUuid);
+    
+    if (existingPullingAccessory) {
+      this.log.info('Restoring existing accessory from cache:', existingPullingAccessory.displayName);
+      new GridPowerSensorAccessory(this, existingPullingAccessory);
+    } else {
+      this.log.info('Adding new accessory:', pullingDisplayName);
+      const accessory = new this.api.platformAccessory(pullingDisplayName, pullingUuid);
+      accessory.context.device = { type: 'gridpowersensor', sensorType: 'pulling' };
+      new GridPowerSensorAccessory(this, accessory);
+      this.api.registerPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [accessory]);
+    }
+    
+    this.discoveredCacheUUIDs.push(pullingUuid);
   }
 
   /**

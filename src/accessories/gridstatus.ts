@@ -11,6 +11,7 @@ export class GridStatusAccessory {
 
   // Current state (0 = grid connected, 1 = grid disconnected)
   private gridStatus = 0;
+  private pollingIntervalId?: NodeJS.Timeout;
 
   constructor(
     private readonly platform: TeslaPowerwallPlatform,
@@ -73,7 +74,7 @@ export class GridStatusAccessory {
   private startPolling(): void {
     const pollingInterval = (this.platform.config.pollingInterval || 15) * 1000;
 
-    setInterval(async () => {
+    this.pollingIntervalId = setInterval(async () => {
       try {
         const gridStatus = await this.getGridStatus();
         this.service.updateCharacteristic(this.platform.Characteristic.ContactSensorState, gridStatus);
@@ -81,5 +82,15 @@ export class GridStatusAccessory {
         this.platform.log.error('Error during grid status polling update:', error);
       }
     }, pollingInterval);
+  }
+
+  /**
+   * Cleanup resources when accessory is removed
+   */
+  destroy(): void {
+    if (this.pollingIntervalId) {
+      clearInterval(this.pollingIntervalId);
+      this.pollingIntervalId = undefined;
+    }
   }
 }

@@ -13,6 +13,7 @@ export class PowerwallAccessory {
   private batteryLevel = 50;
   private chargingState = 0; // 0 = Not Charging, 1 = Charging, 2 = Not Chargeable
   private lowBatteryStatus = 0; // 0 = Normal, 1 = Low
+  private pollingIntervalId?: NodeJS.Timeout;
 
   constructor(
     private readonly platform: TeslaPowerwallPlatform,
@@ -111,7 +112,7 @@ export class PowerwallAccessory {
   private startPolling(): void {
     const pollingInterval = (this.platform.config.pollingInterval || 15) * 1000;
 
-    setInterval(async () => {
+    this.pollingIntervalId = setInterval(async () => {
       try {
         // Update battery level
         const batteryLevel = await this.getBatteryLevel();
@@ -129,5 +130,15 @@ export class PowerwallAccessory {
         this.platform.log.error('Error during polling update:', error);
       }
     }, pollingInterval);
+  }
+
+  /**
+   * Cleanup resources when accessory is removed
+   */
+  destroy(): void {
+    if (this.pollingIntervalId) {
+      clearInterval(this.pollingIntervalId);
+      this.pollingIntervalId = undefined;
+    }
   }
 }

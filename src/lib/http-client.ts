@@ -1,5 +1,6 @@
 import { Agent } from 'https';
 import type { Logging } from 'homebridge';
+import type { MetersAggregatesResponse, SystemStatusResponse, GridStatusResponse } from '../types';
 
 // Use require for node-fetch to avoid ES module issues
 const fetch = require('node-fetch');
@@ -314,14 +315,14 @@ export class HttpClient {
   /**
    * Get system status including state of energy
    */
-  async getSystemStatus(): Promise<any> {
+  async getSystemStatus(): Promise<SystemStatusResponse> {
     return this.get('/api/system_status/soe');
   }
 
   /**
    * Get meters aggregates (power flow data)
    */
-  async getMetersAggregates(): Promise<any> {
+  async getMetersAggregates(): Promise<MetersAggregatesResponse> {
     return this.get('/api/meters/aggregates');
   }
 
@@ -335,7 +336,7 @@ export class HttpClient {
   /**
    * Get grid status
    */
-  async getGridStatus(): Promise<any> {
+  async getGridStatus(): Promise<GridStatusResponse> {
     return this.get('/api/system_status/grid_status');
   }
 
