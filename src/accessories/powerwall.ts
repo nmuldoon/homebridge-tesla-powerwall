@@ -151,7 +151,6 @@ export class PowerwallAccessory {
       const reportedPercentage = data.percentage;
       const resolvedPercentage = reportedPercentage ?? this.batteryLevel ?? 50;
       // Don't round for brightness - use exact percentage
-      
       this.platform.log.debug('Get Characteristic Brightness (Battery Level) ->', resolvedPercentage);
       return resolvedPercentage;
     } catch (error) {
