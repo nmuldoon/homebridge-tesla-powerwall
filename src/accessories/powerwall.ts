@@ -7,6 +7,7 @@ import type { TeslaPowerwallPlatform } from '../platform.js';
  */
 export class PowerwallAccessory {
   private service: Service;
+  private lightbulbService: Service;
   private informationService: Service;
 
   // Current states
@@ -42,6 +43,21 @@ export class PowerwallAccessory {
 
     this.service.getCharacteristic(this.platform.Characteristic.StatusLowBattery)
       .onGet(this.getStatusLowBattery.bind(this));
+
+    // Get or create the Lightbulb service (primary service for HomeKit display)
+    // This allows the battery to show properly in the Home app instead of "Not Supported"
+    this.lightbulbService = this.accessory.getService(this.platform.Service.Lightbulb) ||
+      this.accessory.addService(this.platform.Service.Lightbulb);
+
+    // Set the lightbulb service name
+    this.lightbulbService.setCharacteristic(this.platform.Characteristic.Name, accessory.displayName);
+
+    // Register handlers for the Lightbulb characteristics
+    this.lightbulbService.getCharacteristic(this.platform.Characteristic.On)
+      .onGet(this.getLightbulbOn.bind(this));
+
+    this.lightbulbService.getCharacteristic(this.platform.Characteristic.Brightness)
+      .onGet(this.getLightbulbBrightness.bind(this));
 
     // Start polling for updates
     this.startPolling();
@@ -117,6 +133,34 @@ export class PowerwallAccessory {
   }
 
   /**
+   * Handle requests to get the current value of the Lightbulb "On" characteristic
+   * Always returns true to indicate the Powerwall is present/active
+   */
+  async getLightbulbOn(): Promise<CharacteristicValue> {
+    // Always return true - the lightbulb is "on" to visualize the battery
+    return true;
+  }
+
+  /**
+   * Handle requests to get the current value of the Lightbulb "Brightness" characteristic
+   * Returns the battery percentage (0-100%)
+   */
+  async getLightbulbBrightness(): Promise<CharacteristicValue> {
+    try {
+      const data = await this.platform.httpClient.getSystemStatus();
+      const reportedPercentage = data.percentage;
+      const resolvedPercentage = reportedPercentage ?? this.batteryLevel ?? 50;
+      // Don't round for brightness - use exact percentage
+      
+      this.platform.log.debug('Get Characteristic Brightness (Battery Level) ->', resolvedPercentage);
+      return resolvedPercentage;
+    } catch (error) {
+      this.platform.log.error('Error getting battery level for brightness:', error);
+      return this.batteryLevel;
+    }
+  }
+
+  /**
    * Start polling for updates and push them to HomeKit
    */
   private startPolling(): void {
@@ -135,6 +179,11 @@ export class PowerwallAccessory {
         // Update low battery status
         const lowBatteryStatus = await this.getStatusLowBattery();
         this.service.updateCharacteristic(this.platform.Characteristic.StatusLowBattery, lowBatteryStatus);
+
+        // Update lightbulb brightness to match battery level
+        this.lightbulbService.updateCharacteristic(this.platform.Characteristic.Brightness, batteryLevel);
+        // Lightbulb is always on
+        this.lightbulbService.updateCharacteristic(this.platform.Characteristic.On, true);
 
       } catch (error) {
         this.platform.log.error('Error during polling update:', error);
