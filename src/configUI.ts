@@ -6,7 +6,6 @@ const fetch = require('node-fetch');
 
 interface TestConnectionConfig {
   ip: string;
-  username?: string;
   password: string;
   port?: string;
 }
@@ -71,7 +70,7 @@ export class ConfigUIService {
         },
         agent: agent,
         body: JSON.stringify({
-          username: config.username || 'customer',
+          username: 'customer', // Tesla Powerwall only supports 'customer' as username
           password: config.password,
         }),
         timeout: 10000,

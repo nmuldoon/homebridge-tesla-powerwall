@@ -35,13 +35,6 @@
         "required": true,
         "description": "Your Tesla Powerwall password (set via the Tesla app)"
       },
-      "username": {
-        "title": "Username",
-        "type": "string",
-        "default": "customer",
-        "required": false,
-        "description": "Username (leave as 'customer' - this is the standard for all Powerwalls)"
-      },
       "pollingInterval": {
         "title": "Polling Interval (seconds)",
         "type": "integer",
@@ -106,7 +99,6 @@
         "name",
         "ip",
         "port",
-        "username",
         "password"
       ]
     },

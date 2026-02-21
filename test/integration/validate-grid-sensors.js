@@ -19,7 +19,6 @@ const { Agent } = require('https');
 const config = {
   ip: process.env.POWERWALL_IP || process.argv[2] || '',
   password: process.env.POWERWALL_PASSWORD || process.argv[3] || '',
-  username: process.env.POWERWALL_USERNAME || 'customer',
   threshold: parseInt(process.env.GRID_THRESHOLD || process.argv[4] || '50', 10),
 };
 
@@ -52,7 +51,6 @@ async function validateGridSensors() {
     console.log('');
     console.log('📡 Configuration:');
     console.log(`   IP Address: ${config.ip}`);
-    console.log(`   Username: ${config.username} (default)`);
     console.log(`   Threshold: ${config.threshold}W`);
     console.log('');
 
@@ -66,7 +64,7 @@ async function validateGridSensors() {
       headers: { 'Content-Type': 'application/json' },
       agent: agent,
       body: JSON.stringify({
-        username: config.username,
+        username: 'customer', // Tesla Powerwall only supports 'customer' as username
         password: config.password,
       }),
     });
