@@ -1,35 +1,29 @@
-import type { 
-  API, 
-  Characteristic, 
-  DynamicPlatformPlugin, 
-  Logging, 
-  PlatformAccessory, 
-  PlatformConfig, 
+import type {
+  API,
+  Characteristic,
+  DynamicPlatformPlugin,
+  Logging,
+  PlatformAccessory,
+  PlatformConfig,
   Service,
 } from 'homebridge';
+import type { HttpClient } from './lib/http-client';
 
 export interface TeslaPowerwallPlatformInterface extends DynamicPlatformPlugin {
   readonly Service: typeof Service;
   readonly Characteristic: typeof Characteristic;
   readonly accessories: Map<string, PlatformAccessory>;
   readonly discoveredCacheUUIDs: string[];
-  readonly httpClient: any;
+  readonly httpClient: HttpClient;
   readonly log: Logging;
   readonly config: PlatformConfig;
   readonly api: API;
 }
 
 /**
- * API Response Types
- */
-
-/**
- * Meter data from the Tesla Powerwall aggregates endpoint
- * 
- * Represents power, energy, and electrical characteristics for a specific meter
- * (site/grid, battery, load, solar, etc.)
- * 
- * Note: Power values can be positive or negative depending on flow direction:
+ * Meter data from the Tesla Powerwall aggregates endpoint.
+ *
+ * Sign conventions:
  * - Site/Grid: Positive = importing, Negative = exporting
  * - Battery: Positive = discharging, Negative = charging
  * - Solar: Always positive when generating

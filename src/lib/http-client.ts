@@ -1,14 +1,21 @@
-import { Agent } from 'https';
 import type { Logging } from 'homebridge';
+import { Agent, fetch, type Response } from 'undici';
 import type { MetersAggregatesResponse, SystemStatusResponse, GridStatusResponse } from '../types';
 
-// Use require for node-fetch to avoid ES module issues
-const fetch = require('node-fetch');
+interface CacheEntry {
+  data: unknown;
+  timestamp: number;
+}
+
+const DEFAULT_REQUEST_TIMEOUT_MS = 10000;
+const DEFAULT_SHARED_CACHE_MS = 3000;
+const MIN_AUTH_INTERVAL_MS = 5000;
+const AUTH_REFRESH_INTERVAL_MS = 1000 * 60 * 60 * 11;
 
 export class HttpClient {
   private readonly baseUrl: string;
-  private readonly agent: Agent;
-  private readonly cache: Map<string, { data: any; timestamp: number }> = new Map();
+  private readonly dispatcher: Agent;
+  private readonly cache: Map<string, CacheEntry> = new Map();
   private sessionCookies: string = '';
   private lastAuthAttempt: number = 0;
   private authInProgress: Promise<void> | null = null;
@@ -21,64 +28,42 @@ export class HttpClient {
     private readonly password: string,
     private readonly log: Logging,
   ) {
-    // Build base URL
-    if (port !== '') {
-      this.baseUrl = `https://${ip}:${port}`;
-    } else {
-      this.baseUrl = `https://${ip}`;
-    }
+    this.baseUrl = port ? `https://${ip}:${port}` : `https://${ip}`;
 
-    // Create HTTPS agent that ignores certificate warnings
-    this.agent = new Agent({
-      rejectUnauthorized: false,
+    this.dispatcher = new Agent({
+      connect: { rejectUnauthorized: false },
     });
 
-    // Start login process (but don't await in constructor)
     this.startLoginProcess().catch(error => {
       this.log.error('Failed to start login process:', error);
     });
   }
 
-  /**
-   * Ensure we are authenticated before making requests
-   */
   private async ensureAuthenticated(): Promise<void> {
     if (!this.sessionCookies) {
       this.log.debug('No session cookies, authenticating...');
-      await this.authenticate();
+      await this.authenticateWithRateLimit();
     }
   }
 
-  /**
-   * Clear session cookies (useful for testing or forced re-auth)
-   */
   clearSession(): void {
     this.sessionCookies = '';
     this.log.debug('Session cookies cleared');
   }
 
-  /**
-   * Authenticate with rate limiting protection
-   */
   private async authenticateWithRateLimit(): Promise<void> {
-    const now = Date.now();
-    const timeSinceLastAuth = now - this.lastAuthAttempt;
-    const minInterval = 5000; // 5 seconds minimum between auth attempts
-
-    // If authentication is already in progress, wait for it
     if (this.authInProgress) {
       this.log.debug('Authentication already in progress, waiting...');
       return this.authInProgress;
     }
 
-    // Rate limiting: wait if we tried too recently
-    if (timeSinceLastAuth < minInterval) {
-      const waitTime = minInterval - timeSinceLastAuth;
+    const timeSinceLastAuth = Date.now() - this.lastAuthAttempt;
+    if (timeSinceLastAuth < MIN_AUTH_INTERVAL_MS) {
+      const waitTime = MIN_AUTH_INTERVAL_MS - timeSinceLastAuth;
       this.log.debug(`Rate limiting: waiting ${waitTime}ms before authentication`);
       await new Promise(resolve => setTimeout(resolve, waitTime));
     }
 
-    // Start authentication
     this.authInProgress = this.authenticate();
     this.lastAuthAttempt = Date.now();
 
@@ -89,18 +74,14 @@ export class HttpClient {
     }
   }
 
-  /**
-   * Make a request with automatic retry, rate limiting, and auth handling
-   */
   private async makeRequest(
     method: 'GET' | 'POST',
     endpoint: string,
-    body?: any,
-    cacheInterval?: number
-  ): Promise<any> {
+    body?: unknown,
+    cacheInterval?: number,
+  ): Promise<unknown> {
     const url = `${this.baseUrl}${endpoint}`;
-    
-    // Check cache for GET requests if caching is enabled
+
     if (method === 'GET' && cacheInterval) {
       const cached = this.cache.get(url);
       if (cached && (Date.now() - cached.timestamp) < cacheInterval) {
@@ -108,7 +89,6 @@ export class HttpClient {
       }
     }
 
-    // Ensure we're authenticated before making the request (except for login)
     if (endpoint !== '/api/login/Basic') {
       await this.ensureAuthenticated();
     }
@@ -116,177 +96,118 @@ export class HttpClient {
     return this.executeRequestWithRetry(method, url, endpoint, body, cacheInterval);
   }
 
-  /**
-   * Execute a request with automatic retry for 401 and 429 errors
-   */
   private async executeRequestWithRetry(
     method: 'GET' | 'POST',
     url: string,
     endpoint: string,
-    body?: any,
+    body?: unknown,
     cacheInterval?: number,
-    isRetry: boolean = false
-  ): Promise<any> {
-    try {
-      const response = await this.executeSingleRequest(method, url, body);
+    isRetry: boolean = false,
+  ): Promise<unknown> {
+    const response = await this.executeSingleRequest(method, url, body);
 
-      // Handle 429 Rate Limiting
-      if (response.status === 429) {
-        if (isRetry) {
-          throw new Error('Rate limit retry failed');
-        }
-        
-        const retryAfter = response.headers.get('retry-after') || '30';
-        const waitTime = parseInt(retryAfter) * 1000;
-        this.log.warn(`Rate limited (429) on ${method}, waiting ${waitTime}ms before retry`);
-        
-        await new Promise(resolve => setTimeout(resolve, waitTime));
-        return this.executeRequestWithRetry(method, url, endpoint, body, cacheInterval, true);
+    if (response.status === 429) {
+      if (isRetry) {
+        throw new Error('Rate limit retry failed');
       }
-
-      // Handle 401 by re-authenticating and retrying
-      if (response.status === 401 && !isRetry && endpoint !== '/api/login/Basic') {
-        this.log.debug('Received 401, re-authenticating...');
-        await this.authenticateWithRateLimit();
-        return this.executeRequestWithRetry(method, url, endpoint, body, cacheInterval, true);
-      }
-
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-      }
-
-      // Handle cookie extraction for login
-      if (endpoint === '/api/login/Basic') {
-        this.extractAndStoreCookies(response);
-      }
-
-      const data = await response.json();
-
-      // Cache the result for GET requests if caching is enabled
-      if (method === 'GET' && cacheInterval) {
-        this.cache.set(url, {
-          data,
-          timestamp: Date.now(),
-        });
-      }
-
-      return data;
-    } catch (error) {
-      this.log.error(`Request failed for ${url}:`, error);
-      throw error;
+      const retryAfter = response.headers.get('retry-after') || '30';
+      const waitTime = parseInt(retryAfter, 10) * 1000;
+      this.log.warn(`Rate limited (429) on ${method}, waiting ${waitTime}ms before retry`);
+      await new Promise(resolve => setTimeout(resolve, waitTime));
+      return this.executeRequestWithRetry(method, url, endpoint, body, cacheInterval, true);
     }
+
+    if (response.status === 401 && !isRetry && endpoint !== '/api/login/Basic') {
+      this.log.debug('Received 401, re-authenticating...');
+      this.sessionCookies = '';
+      await this.authenticateWithRateLimit();
+      return this.executeRequestWithRetry(method, url, endpoint, body, cacheInterval, true);
+    }
+
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
+
+    if (endpoint === '/api/login/Basic') {
+      this.extractAndStoreCookies(response);
+    }
+
+    const data = await response.json();
+
+    if (method === 'GET' && cacheInterval) {
+      this.cache.set(url, { data, timestamp: Date.now() });
+    }
+
+    return data;
   }
 
-  /**
-   * Execute a single HTTP request with timeout
-   */
   private async executeSingleRequest(
     method: 'GET' | 'POST',
     url: string,
-    body?: any
+    body?: unknown,
   ): Promise<Response> {
     const headers: Record<string, string> = {};
-    
+
     if (method === 'POST') {
       headers['Content-Type'] = 'application/json';
     }
-    
     if (this.sessionCookies) {
       headers.Cookie = this.sessionCookies;
     }
 
-    // Create abort controller for timeout
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 10000);
+    const timeoutId = setTimeout(() => controller.abort(), DEFAULT_REQUEST_TIMEOUT_MS);
 
     try {
-      const fetchOptions: any = {
+      return await fetch(url, {
         method,
         headers,
-        agent: this.agent,
+        dispatcher: this.dispatcher,
         signal: controller.signal,
-      };
-
-      if (method === 'POST' && body) {
-        fetchOptions.body = JSON.stringify(body);
-      }
-
-      const response = await fetch(url, fetchOptions);
+        body: method === 'POST' && body ? JSON.stringify(body) : undefined,
+      });
+    } finally {
       clearTimeout(timeoutId);
-      return response;
-    } catch (error) {
-      clearTimeout(timeoutId);
-      throw error;
     }
   }
 
-  /**
-   * Extract and store session cookies from response
-   */
   private extractAndStoreCookies(response: Response): void {
-    const setCookieHeader = response.headers.get('set-cookie');
-    if (setCookieHeader) {
-      // Handle both string and array formats
-      let cookieStrings: string[];
-      if (Array.isArray(setCookieHeader)) {
-        cookieStrings = setCookieHeader;
-      } else {
-        cookieStrings = [setCookieHeader];
-      }
-      
-      // Extract cookie name=value pairs, ignoring attributes
-      const cookiePairs = cookieStrings.map(cookie => {
-        const parts = cookie.split(';');
-        return parts[0]?.trim() || ''; // Just the name=value part
-      }).filter(cookie => cookie.length > 0);
-      
-      this.sessionCookies = cookiePairs.join('; ');
-      this.log.debug('Session cookies updated:', this.sessionCookies.length > 0 ? 'Success' : 'Empty');
-    } else {
+    const cookieValues = response.headers.getSetCookie();
+    if (cookieValues.length === 0) {
       this.log.warn('No session cookies received from login response');
+      return;
     }
+    this.sessionCookies = cookieValues
+      .map(cookie => cookie.split(';')[0]?.trim() ?? '')
+      .filter(pair => pair.length > 0)
+      .join('; ');
+    this.log.debug('Session cookies updated:', this.sessionCookies.length > 0 ? 'Success' : 'Empty');
   }
 
-  /**
-   * Make a GET request with optional caching and auto re-authentication
-   */
-  async get(endpoint: string, cacheInterval?: number): Promise<any> {
+  async get(endpoint: string, cacheInterval?: number): Promise<unknown> {
     return this.makeRequest('GET', endpoint, undefined, cacheInterval);
   }
 
-  /**
-   * Make a POST request
-   */
-  async post(endpoint: string, body: any): Promise<any> {
+  async post(endpoint: string, body: unknown): Promise<unknown> {
     return this.makeRequest('POST', endpoint, body);
   }
 
-  /**
-   * Start the login process and maintain authentication
-   */
   private async startLoginProcess(): Promise<void> {
-    const loginInterval = 1000 * 60 * 60 * 11; // 11 hours
-
-    // Initial login - wait for it to complete
     try {
       await this.authenticateWithRateLimit();
     } catch (error) {
       this.log.error('Initial authentication failed:', error);
     }
 
-    // Setup periodic re-login
     this.loginIntervalId = setInterval(async () => {
       try {
         await this.authenticateWithRateLimit();
       } catch (error) {
         this.log.error('Periodic authentication failed:', error);
       }
-    }, loginInterval);
+    }, AUTH_REFRESH_INTERVAL_MS);
   }
 
-  /**
-   * Cleanup resources and stop background processes
-   */
   destroy(): void {
     if (this.loginIntervalId) {
       clearInterval(this.loginIntervalId);
@@ -294,14 +215,14 @@ export class HttpClient {
     }
     this.cache.clear();
     this.sessionCookies = '';
+    this.dispatcher.close().catch(() => { /* ignore */ });
   }
 
-  /**
-   * Authenticate with the Tesla Powerwall
-   */
   async authenticate(): Promise<void> {
     try {
-      await this.post('/api/login/Basic', {
+      // Bypass the wrapper here to avoid an ensureAuthenticated recursion.
+      const url = `${this.baseUrl}/api/login/Basic`;
+      await this.executeRequestWithRetry('POST', url, '/api/login/Basic', {
         username: this.username,
         password: this.password,
       });
@@ -312,40 +233,25 @@ export class HttpClient {
     }
   }
 
-  /**
-   * Get system status including state of energy
-   */
-  async getSystemStatus(): Promise<SystemStatusResponse> {
-    return this.get('/api/system_status/soe');
+  async getSystemStatus(cacheMs: number = DEFAULT_SHARED_CACHE_MS): Promise<SystemStatusResponse> {
+    return this.get('/api/system_status/soe', cacheMs) as Promise<SystemStatusResponse>;
   }
 
-  /**
-   * Get meters aggregates (power flow data)
-   */
-  async getMetersAggregates(): Promise<MetersAggregatesResponse> {
-    return this.get('/api/meters/aggregates');
+  async getMetersAggregates(cacheMs: number = DEFAULT_SHARED_CACHE_MS): Promise<MetersAggregatesResponse> {
+    return this.get('/api/meters/aggregates', cacheMs) as Promise<MetersAggregatesResponse>;
   }
 
-  /**
-   * Get site master information
-   */
-  async getSiteMaster(): Promise<any> {
-    return this.get('/api/sitemaster');
+  async getSiteMaster(cacheMs: number = DEFAULT_SHARED_CACHE_MS): Promise<unknown> {
+    return this.get('/api/sitemaster', cacheMs);
   }
 
-  /**
-   * Get grid status
-   */
-  async getGridStatus(): Promise<GridStatusResponse> {
-    return this.get('/api/system_status/grid_status');
+  async getGridStatus(cacheMs: number = DEFAULT_SHARED_CACHE_MS): Promise<GridStatusResponse> {
+    return this.get('/api/system_status/grid_status', cacheMs) as Promise<GridStatusResponse>;
   }
 
-  /**
-   * Test connection to the Tesla Powerwall
-   */
   async testConnection(): Promise<boolean> {
     try {
-      await this.getSystemStatus();
+      await this.getSystemStatus(0);
       return true;
     } catch (error) {
       this.log.error('Connection test failed:', error);

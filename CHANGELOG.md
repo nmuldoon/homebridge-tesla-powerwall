@@ -2,6 +2,29 @@
 
 All notable changes to this project will be documented in this file.
 
+## [4.2.0] - 2026-06-09
+
+### Changed
+- Replaced `node-fetch` with `undici` and Node's native fetch
+- Bumped Homebridge dev dependency to 2.x (matches `engines` field)
+- Updated `@types/node`, `typescript-eslint`, `mocha`, `nock`, `tough-cookie` to latest
+- Switched coverage tooling from `nyc` to `c8` (no instrumentation, no vulnerable transitives)
+- Shared cache window (3s default) on all Powerwall API calls so concurrent accessory polls share a single network request
+- `HttpClient` interface now strongly typed in `TeslaPowerwallPlatformInterface` (was `any`)
+
+### Removed
+- Unused runtime deps: `moment`, `fakegato-history`, `node-fetch`, `@types/node-fetch`
+- Unused dev deps: `chalk`, `tough-cookie`, `events`
+- Orphaned `src/configUI.ts` (never wired up)
+- Orphaned `src/helper/` JS files (pre-TypeScript-rewrite leftovers)
+- Dead `createAccessoryHandler` method in `platform.ts`
+- Legacy `.eslintrc.json` (superseded by flat `eslint.config.js`)
+- `README.md.old`
+- `enableHistory` config option (no implementation existed)
+
+### Security
+- Reduced `npm audit` findings from 12 → 3 (remaining are mocha transitives)
+
 ## [4.1.0] - 2026-01-16
 
 ### Added
