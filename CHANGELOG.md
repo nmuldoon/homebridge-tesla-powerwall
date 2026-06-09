@@ -23,7 +23,10 @@ All notable changes to this project will be documented in this file.
 - `enableHistory` config option (no implementation existed)
 
 ### Security
-- Reduced `npm audit` findings from 12 → 3 (remaining are mocha transitives)
+- Reduced `npm audit` findings from 12 → 0 by adding `overrides` for the
+  remaining mocha transitives (`diff` → `^9.0.0`, `serialize-javascript` →
+  `^7.0.5`). Mocha's runtime usage (`diffWordsWithSpace`, `createPatch`) is
+  stable across these majors; the test suite passes unchanged.
 
 ### Tests
 - Replaced the legacy mocha suite (which targeted the pre-TypeScript static-platform shape with `0_powerwall`/`1_solar`/`PowerMeterService` etc.) with focused tests for the current `DynamicPlatformPlugin`: plugin registration, platform construction error paths, and HttpClient auth/401-retry/cache behaviour exercised through `undici.MockAgent`
