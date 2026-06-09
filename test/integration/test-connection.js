@@ -9,9 +9,7 @@
  * and verify that the credentials and network settings are correct.
  */
 
-const fetch = require('node-fetch');
-const { Agent } = require('https');
-const { CookieJar } = require('tough-cookie');
+const { Agent, fetch } = require('undici');
 
 // Configuration interface
 const config = {
@@ -54,28 +52,25 @@ async function testConnection() {
     // Build base URL
     const baseUrl = `https://${config.ip}`;
 
-    // Create HTTPS agent that ignores certificate warnings
-    const agent = new Agent({
-      rejectUnauthorized: false,
+    // Create HTTPS dispatcher that ignores certificate warnings
+    const dispatcher = new Agent({
+      connect: { rejectUnauthorized: false },
     });
 
-    // Create cookie jar for session management
-    const cookieJar = new CookieJar();
-
     console.log("🔐 Step 1: Testing authentication...");
-    
+
     // Test login
     const loginResponse = await fetch(`${baseUrl}/api/login/Basic`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      agent: agent,
+      dispatcher,
       body: JSON.stringify({
         username: 'customer', // Tesla Powerwall only supports 'customer' as username
         password: config.password,
       }),
-      timeout: 10000,
+      signal: AbortSignal.timeout(10000),
     });
 
     if (!loginResponse.ok) {
@@ -83,12 +78,9 @@ async function testConnection() {
     }
 
     // Extract cookies from login response
-    const setCookieHeader = loginResponse.headers.get('set-cookie');
-    let cookies = '';
-    if (setCookieHeader) {
-      // Parse and store cookies for subsequent requests
-      const cookiePairs = Array.isArray(setCookieHeader) ? setCookieHeader : [setCookieHeader];
-      cookies = cookiePairs.map(cookie => cookie.split(';')[0]).join('; ');
+    const cookiePairs = loginResponse.headers.getSetCookie();
+    const cookies = cookiePairs.map(cookie => cookie.split(';')[0].trim()).filter(Boolean).join('; ');
+    if (cookies) {
       console.log("🍪 Session cookies received");
     }
 
@@ -101,8 +93,8 @@ async function testConnection() {
     const batteryResponse = await fetch(`${baseUrl}/api/system_status/soe`, {
       method: 'GET',
       headers: cookies ? { 'Cookie': cookies } : {},
-      agent: agent,
-      timeout: 10000,
+      dispatcher,
+      signal: AbortSignal.timeout(10000),
     });
 
     if (!batteryResponse.ok) {
@@ -119,8 +111,8 @@ async function testConnection() {
     const powerResponse = await fetch(`${baseUrl}/api/meters/aggregates`, {
       method: 'GET',
       headers: cookies ? { 'Cookie': cookies } : {},
-      agent: agent,
-      timeout: 10000,
+      dispatcher,
+      signal: AbortSignal.timeout(10000),
     });
 
     if (!powerResponse.ok) {
@@ -140,8 +132,8 @@ async function testConnection() {
     const gridResponse = await fetch(`${baseUrl}/api/system_status/grid_status`, {
       method: 'GET',
       headers: cookies ? { 'Cookie': cookies } : {},
-      agent: agent,
-      timeout: 10000,
+      dispatcher,
+      signal: AbortSignal.timeout(10000),
     });
 
     if (!gridResponse.ok) {

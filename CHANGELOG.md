@@ -25,6 +25,11 @@ All notable changes to this project will be documented in this file.
 ### Security
 - Reduced `npm audit` findings from 12 → 3 (remaining are mocha transitives)
 
+### Tests
+- Replaced the legacy mocha suite (which targeted the pre-TypeScript static-platform shape with `0_powerwall`/`1_solar`/`PowerMeterService` etc.) with focused tests for the current `DynamicPlatformPlugin`: plugin registration, platform construction error paths, and HttpClient auth/401-retry/cache behaviour exercised through `undici.MockAgent`
+- `HttpClient` now accepts an optional `dispatcher` and `autoStartLogin` flag so its HTTP layer is unit-testable
+- Migrated `test/integration/*.js` scripts off `node-fetch`/`tough-cookie` onto `undici`
+
 ## [4.1.0] - 2026-01-16
 
 ### Added

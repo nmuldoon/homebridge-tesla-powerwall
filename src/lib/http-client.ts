@@ -1,10 +1,15 @@
 import type { Logging } from 'homebridge';
-import { Agent, fetch, type Response } from 'undici';
+import { Agent, type Dispatcher, fetch, type Response } from 'undici';
 import type { MetersAggregatesResponse, SystemStatusResponse, GridStatusResponse } from '../types';
 
 interface CacheEntry {
   data: unknown;
   timestamp: number;
+}
+
+export interface HttpClientOptions {
+  dispatcher?: Dispatcher;
+  autoStartLogin?: boolean;
 }
 
 const DEFAULT_REQUEST_TIMEOUT_MS = 10000;
@@ -14,7 +19,8 @@ const AUTH_REFRESH_INTERVAL_MS = 1000 * 60 * 60 * 11;
 
 export class HttpClient {
   private readonly baseUrl: string;
-  private readonly dispatcher: Agent;
+  private readonly dispatcher: Dispatcher;
+  private readonly ownsDispatcher: boolean;
   private readonly cache: Map<string, CacheEntry> = new Map();
   private sessionCookies: string = '';
   private lastAuthAttempt: number = 0;
@@ -27,16 +33,25 @@ export class HttpClient {
     private readonly username: string,
     private readonly password: string,
     private readonly log: Logging,
+    options: HttpClientOptions = {},
   ) {
     this.baseUrl = port ? `https://${ip}:${port}` : `https://${ip}`;
 
-    this.dispatcher = new Agent({
-      connect: { rejectUnauthorized: false },
-    });
+    if (options.dispatcher) {
+      this.dispatcher = options.dispatcher;
+      this.ownsDispatcher = false;
+    } else {
+      this.dispatcher = new Agent({
+        connect: { rejectUnauthorized: false },
+      });
+      this.ownsDispatcher = true;
+    }
 
-    this.startLoginProcess().catch(error => {
-      this.log.error('Failed to start login process:', error);
-    });
+    if (options.autoStartLogin !== false) {
+      this.startLoginProcess().catch(error => {
+        this.log.error('Failed to start login process:', error);
+      });
+    }
   }
 
   private async ensureAuthenticated(): Promise<void> {
@@ -215,7 +230,9 @@ export class HttpClient {
     }
     this.cache.clear();
     this.sessionCookies = '';
-    this.dispatcher.close().catch(() => { /* ignore */ });
+    if (this.ownsDispatcher) {
+      this.dispatcher.close().catch(() => { /* ignore */ });
+    }
   }
 
   async authenticate(): Promise<void> {
