@@ -47,7 +47,7 @@ export class GridPowerSensorAccessory {
     this.informationService = this.accessory.getService(this.platform.Service.AccessoryInformation)!;
     this.informationService
       .setCharacteristic(this.platform.Characteristic.Manufacturer, 'Tesla')
-      .setCharacteristic(this.platform.Characteristic.Model, `Powerwall Grid ${this.sensorType === 'feeding' ? 'Feeding' : 'Pulling'} Sensor`)
+      .setCharacteristic(this.platform.Characteristic.Model, `Powerwall ${this.sensorType === 'feeding' ? 'Exporting' : 'Importing'} Sensor`)
       .setCharacteristic(this.platform.Characteristic.SerialNumber, `TeslaPowerwall-Grid-${this.sensorType}-` + accessory.UUID);
 
     // Get or create the ContactSensor service

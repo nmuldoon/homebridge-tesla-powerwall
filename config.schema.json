@@ -45,18 +45,18 @@
         "description": "How often to poll the Powerwall for updates (5-300 seconds)"
       },
       "enableGridStatus": {
-        "title": "Enable Grid Status",
+        "title": "Enable Grid Online Sensor",
         "type": "boolean",
         "default": true,
         "required": false,
-        "description": "Show grid connectivity status as a Contact Sensor"
+        "description": "Show grid connectivity as a Contact Sensor (Closed = grid connected, Open = islanded)"
       },
       "enableGridPowerSensors": {
-        "title": "Enable Grid Power Sensors",
+        "title": "Enable Exporting / Importing Sensors",
         "type": "boolean",
         "default": true,
         "required": false,
-        "description": "Show sensors that detect when power is feeding to or pulling from the grid (for automation triggers)"
+        "description": "Show separate Contact Sensors that close while you are exporting to or importing from the grid (for automation triggers)"
       },
       "gridSensorThreshold": {
         "title": "Grid Sensor Threshold (watts)",
