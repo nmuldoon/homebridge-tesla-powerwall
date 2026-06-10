@@ -152,31 +152,51 @@ The validator will:
 ### Accessories Provided
 
 1. **Battery Status** - Shows battery charge level, charging state, and low battery alerts
-2. **Grid Status Sensor** - Contact sensor that shows if the grid is connected or disconnected
-3. **Grid Feeding Sensor** ⭐ **NEW** - Contact sensor that triggers when power is being fed to the grid (export)
-4. **Grid Pulling Sensor** ⭐ **NEW** - Contact sensor that triggers when power is being pulled from the grid (import)
+2. **Grid Online Sensor** (`Tesla Powerwall Grid Online`) - Contact sensor reflecting whether the Powerwall is grid-tied
+   - **Closed** = grid connected (`grid_status: SystemGridConnected`)
+   - **Open** = grid disconnected / islanded (`SystemIslandedActive` or similar)
+3. **Exporting Sensor** (`Tesla Powerwall Exporting`) - Contact sensor that opens when you are exporting to the grid
+   - **Open** = exporting to the grid (site `instant_power` < -`gridSensorThreshold`)
+   - **Closed** = idle / not exporting
+4. **Importing Sensor** (`Tesla Powerwall Importing`) - Contact sensor that opens when you are importing from the grid
+   - **Open** = importing from the grid (site `instant_power` > +`gridSensorThreshold`)
+   - **Closed** = idle / not importing
 5. **Power Meters** - Light sensors showing power flow for Solar, Grid, and Load
 
-### Grid Power Sensors - Automation Examples ⭐ **NEW**
+> **A note on "Open" vs "Closed"**: HomeKit contact sensors only have two
+> labels — "Open" and "Closed" — borrowed from door/window sensors. The
+> convention is **Closed = quiescent / resting state, Open = the noteworthy
+> event** (which is what you usually build automations on). For these
+> sensors:
+> - `Grid Online` is **Closed** while everything is normal (grid connected)
+>   and **Opens** when the Powerwall islands.
+> - `Exporting` and `Importing` are **Closed** while idle and **Open** while
+>   that flow direction is actively above the threshold.
+>
+> If you'd prefer different labels, you can rename the accessories in the
+> Home app (long-press → Settings → rename); your automations will keep
+> working under the new names.
 
-The new grid power sensors enable powerful HomeKit automations:
+### Grid Power Sensors - Automation Examples
+
+The grid power sensors enable powerful HomeKit automations:
 
 #### Example 1: Get notified when exporting power to the grid
 ```
-When: Grid Feeding Sensor detects contact
+When: Tesla Powerwall Exporting opens
 Then: Send notification "You're selling power to the grid! 💰"
 ```
 
 #### Example 2: Notify when importing expensive peak power
 ```
-When: Grid Pulling Sensor detects contact
+When: Tesla Powerwall Importing opens
 AND Time is between 4:00 PM and 9:00 PM
 Then: Send notification "Using peak power from grid ⚡"
 ```
 
 #### Example 3: Turn off non-essential loads when pulling from grid
 ```
-When: Grid Pulling Sensor detects contact
+When: Tesla Powerwall Importing opens
 Then: 
   - Turn off pool pump
   - Turn off EV charger
@@ -185,7 +205,7 @@ Then:
 
 #### Example 4: Start charging devices when exporting to grid
 ```
-When: Grid Feeding Sensor detects contact
+When: Tesla Powerwall Exporting opens
 AND Battery level > 80%
 Then: 
   - Start EV charging

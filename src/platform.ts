@@ -151,7 +151,7 @@ export class TeslaPowerwallPlatform implements TeslaPowerwallPlatformInterface {
   private async createGridStatusAccessory(): Promise<void> {
     const { GridStatusAccessory } = await import('./accessories/gridstatus');
     const uuid = this.api.hap.uuid.generate('powerwall-grid-status');
-    const displayName = 'Tesla Powerwall Grid Status';
+    const displayName = 'Tesla Powerwall Grid Online';
 
     const existingAccessory = this.accessories.get(uuid);
 
@@ -177,7 +177,7 @@ export class TeslaPowerwallPlatform implements TeslaPowerwallPlatformInterface {
     
     // Create feeding to grid sensor
     const feedingUuid = this.api.hap.uuid.generate('powerwall-grid-feeding-sensor');
-    const feedingDisplayName = 'Tesla Powerwall Grid Feeding';
+    const feedingDisplayName = 'Tesla Powerwall Exporting';
     
     const existingFeedingAccessory = this.accessories.get(feedingUuid);
     
@@ -196,7 +196,7 @@ export class TeslaPowerwallPlatform implements TeslaPowerwallPlatformInterface {
     
     // Create pulling from grid sensor
     const pullingUuid = this.api.hap.uuid.generate('powerwall-grid-pulling-sensor');
-    const pullingDisplayName = 'Tesla Powerwall Grid Pulling';
+    const pullingDisplayName = 'Tesla Powerwall Importing';
     
     const existingPullingAccessory = this.accessories.get(pullingUuid);
     
