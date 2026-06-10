@@ -1,0 +1,58 @@
+{
+  "site": {
+    "instant_power": -21.45,
+    "instant_reactive_power": -138.83,
+    "instant_apparent_power": 140.48,
+    "frequency": 60.06,
+    "energy_exported": 1136916.69,
+    "energy_imported": 3276432.66,
+    "instant_average_voltage": 239.82,
+    "instant_total_current": 0,
+    "i_a_current": 0,
+    "i_b_current": 0,
+    "i_c_current": 0,
+    "last_communication_time": "2026-06-10T10:00:00Z"
+  },
+  "battery": {
+    "instant_power": -2350,
+    "instant_reactive_power": 0,
+    "instant_apparent_power": 2350,
+    "frequency": 60.03,
+    "energy_exported": 1169030,
+    "energy_imported": 1638140,
+    "instant_average_voltage": 239.1,
+    "instant_total_current": 45.8,
+    "i_a_current": 0,
+    "i_b_current": 0,
+    "i_c_current": 0,
+    "last_communication_time": "2026-06-10T10:00:00Z"
+  },
+  "load": {
+    "instant_power": 1546.27,
+    "instant_reactive_power": -71.43,
+    "instant_apparent_power": 1547.92,
+    "frequency": 60.06,
+    "energy_exported": 0,
+    "energy_imported": 7191017,
+    "instant_average_voltage": 239.82,
+    "instant_total_current": 6.45,
+    "i_a_current": 0,
+    "i_b_current": 0,
+    "i_c_current": 0,
+    "last_communication_time": "2026-06-10T10:00:00Z"
+  },
+  "solar": {
+    "instant_power": 3906.17,
+    "instant_reactive_power": 53.27,
+    "instant_apparent_power": 3906.53,
+    "frequency": 60.06,
+    "energy_exported": 5534273,
+    "energy_imported": 13662,
+    "instant_average_voltage": 239.87,
+    "instant_total_current": 0,
+    "i_a_current": 0,
+    "i_b_current": 0,
+    "i_c_current": 0,
+    "last_communication_time": "2026-06-10T10:00:00Z"
+  }
+}
