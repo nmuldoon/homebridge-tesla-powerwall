@@ -152,10 +152,26 @@ The validator will:
 ### Accessories Provided
 
 1. **Battery Status** - Shows battery charge level, charging state, and low battery alerts
-2. **Grid Status Sensor** - Contact sensor that shows if the grid is connected or disconnected
-3. **Grid Feeding Sensor** ⭐ **NEW** - Contact sensor that triggers when power is being fed to the grid (export)
-4. **Grid Pulling Sensor** ⭐ **NEW** - Contact sensor that triggers when power is being pulled from the grid (import)
+2. **Grid Status Sensor** - Contact sensor reflecting whether the Powerwall is grid-tied
+   - **Closed** = grid connected (`grid_status: SystemGridConnected`)
+   - **Open** = grid disconnected / islanded (`SystemIslandedActive` or similar)
+3. **Grid Feeding Sensor** - Contact sensor that triggers when you are exporting to the grid
+   - **Closed** = feeding the grid (site `instant_power` < -`gridSensorThreshold`)
+   - **Open** = not feeding
+4. **Grid Pulling Sensor** - Contact sensor that triggers when you are importing from the grid
+   - **Closed** = pulling from the grid (site `instant_power` > +`gridSensorThreshold`)
+   - **Open** = not pulling
 5. **Power Meters** - Light sensors showing power flow for Solar, Grid, and Load
+
+> **A note on "Open" vs "Closed"**: HomeKit contact sensors only have two labels —
+> "Open" and "Closed" — borrowed from door/window sensors. They aren't
+> changeable by a plugin. For these sensors, **Closed = the named condition
+> is true** (grid connected, feeding, or pulling) and **Open = it isn't**.
+> If you find this confusing in the Home app, the simplest workaround is to
+> rename the accessories themselves (long-press → Settings → rename) to
+> something action-oriented like "Grid Online", "Exporting to Grid", and
+> "Importing from Grid". Your automations will keep working under the new
+> names.
 
 ### Grid Power Sensors - Automation Examples ⭐ **NEW**
 
