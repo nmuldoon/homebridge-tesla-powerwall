@@ -2,6 +2,28 @@
 
 All notable changes to this project will be documented in this file.
 
+## [4.2.2] - 2026-06-10
+
+### Changed
+- Renamed the three grid contact sensors to action-oriented labels so the
+  tile name alone conveys the meaning:
+  - `Tesla Powerwall Grid Status` → `Tesla Powerwall Grid Online`
+  - `Tesla Powerwall Grid Feeding` → `Tesla Powerwall Exporting`
+  - `Tesla Powerwall Grid Pulling` → `Tesla Powerwall Importing`
+  Accessory UUIDs are seeded by stable strings, so existing installs keep
+  their HomeKit identity; only new installs see the new defaults, and any
+  Home-app rename overrides the plugin label anyway. Config keys
+  (`enableGridStatus`, `enableGridPowerSensors`) are unchanged.
+- `AccessoryInformation.Model` strings updated to match the new names.
+- Homebridge UI titles/descriptions in `config.schema.json` reworded for
+  the new names (underlying property names unchanged).
+
+### Documentation
+- README "Accessories Provided" section rewritten with the new names and
+  explicit Closed/Open state mapping for each contact sensor, plus a note
+  on HomeKit's door-sensor terminology.
+- Automation examples updated to reference the new accessory names.
+
 ## [4.2.1] - 2026-06-10
 
 ### Fixed
