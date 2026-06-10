@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file.
 
+## [4.2.1] - 2026-06-10
+
+### Fixed
+- Inverted Powerwall charging state (#10). The Tesla aggregates API reports
+  `battery.instant_power` as positive when discharging and negative when
+  charging; the comparison in `getChargingState` had the polarity reversed,
+  so HomeKit saw `CHARGING` during discharge and vice versa.
+
+### Tests
+- Added unit coverage for `PowerwallAccessory.getChargingState` around the
+  charging/discharging/noise-band cases.
+
 ## [4.2.0] - 2026-06-09
 
 ### Changed
