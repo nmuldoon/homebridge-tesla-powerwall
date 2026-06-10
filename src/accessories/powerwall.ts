@@ -89,9 +89,10 @@ export class PowerwallAccessory {
     try {
       const data = await this.platform.httpClient.getMetersAggregates();
       const batteryPower = data.battery?.instant_power || 0;
-      
-      // Positive power = charging, negative = discharging
-      if (batteryPower > 50) { // Small threshold for noise
+
+      // Tesla API convention: battery.instant_power is negative when charging,
+      // positive when discharging. 50W threshold filters out idle noise.
+      if (batteryPower < -50) {
         this.chargingState = this.platform.Characteristic.ChargingState.CHARGING;
       } else {
         this.chargingState = this.platform.Characteristic.ChargingState.NOT_CHARGING;
