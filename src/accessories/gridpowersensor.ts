@@ -67,14 +67,16 @@ export class GridPowerSensorAccessory {
   }
 
   /**
-   * Handle requests to get the current sensor state
-   * 
-   * For feeding sensor: Returns CONTACT_DETECTED when site power < -threshold (exporting)
-   * For pulling sensor: Returns CONTACT_DETECTED when site power > threshold (importing)
-   * 
+   * Handle requests to get the current sensor state.
+   *
+   * For the exporting sensor: Returns CONTACT_NOT_DETECTED (Open) when site
+   * power < -threshold; CONTACT_DETECTED (Closed) otherwise.
+   * For the importing sensor: Returns CONTACT_NOT_DETECTED (Open) when site
+   * power > threshold; CONTACT_DETECTED (Closed) otherwise.
+   *
    * The threshold helps avoid false triggers from minor power fluctuations.
    * Default threshold is 50W, configurable via gridSensorThreshold config option.
-   * 
+   *
    * @returns {Promise<CharacteristicValue>} The current sensor state
    */
   async getSensorState(): Promise<CharacteristicValue> {
@@ -96,15 +98,19 @@ export class GridPowerSensorAccessory {
         isConditionMet = sitePower > threshold;
       }
       
-      this.sensorState = isConditionMet ? 
-        this.platform.Characteristic.ContactSensorState.CONTACT_DETECTED :
-        this.platform.Characteristic.ContactSensorState.CONTACT_NOT_DETECTED;
-      
+      // Idle (no flow) is the quiescent state and maps to Closed, matching
+      // HomeKit door-sensor convention where Open is the noteworthy event.
+      // Active export/import triggers Open so it reads naturally in
+      // automations ("when Exporting opens, ...").
+      this.sensorState = isConditionMet ?
+        this.platform.Characteristic.ContactSensorState.CONTACT_NOT_DETECTED :
+        this.platform.Characteristic.ContactSensorState.CONTACT_DETECTED;
+
       this.platform.log.debug(
-        `Get Characteristic Grid ${this.sensorType === 'feeding' ? 'Feeding' : 'Pulling'} Sensor ->`, 
+        `Get Characteristic ${this.sensorType === 'feeding' ? 'Exporting' : 'Importing'} Sensor ->`,
         `${sitePower.toFixed(1)}W`,
-        isConditionMet ? 'DETECTED' : 'NOT DETECTED',
-        `(threshold: ${threshold}W)`
+        isConditionMet ? 'ACTIVE (Open)' : 'IDLE (Closed)',
+        `(threshold: ${threshold}W)`,
       );
       
       return this.sensorState;
