@@ -74,13 +74,6 @@
         "required": false,
         "description": "Show power flow meters (Solar, Grid, Load) as Light Bulbs with brightness representing power"
       },
-      "enableHistory": {
-        "title": "Enable History",
-        "type": "boolean",
-        "default": false,
-        "required": false,
-        "description": "Enable historical data logging (requires eve app to view)"
-      },
       "debug": {
         "title": "Debug Logging",
         "type": "boolean",
@@ -111,8 +104,7 @@
         "enableGridStatus",
         "enableGridPowerSensors",
         "gridSensorThreshold",
-        "enablePowerMeters",
-        "enableHistory"
+        "enablePowerMeters"
       ]
     },
     {

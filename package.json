@@ -1,13 +1,13 @@
 {
   "name": "homebridge-tesla-powerwall",
-  "version": "4.1.0",
+  "version": "4.2.0",
   "description": "Homebridge plugin for the Tesla Powerwall (based off the original by datMaffin)",
   "main": "dist/index.js",
   "scripts": {
     "build": "rimraf ./dist && tsc",
     "watch": "npm run build && npm link && nodemon",
     "prepublishOnly": "npm run build",
-    "test": "nyc mocha --exit",
+    "test": "c8 mocha --exit",
     "test-connection": "node test/integration/test-connection.js"
   },
   "repository": {
@@ -35,25 +35,23 @@
     "homebridge": "^1.6.0 || ^2.0.0-beta.0"
   },
   "dependencies": {
-    "fakegato-history": "^0.6.7",
-    "moment": "^2.30.1",
-    "node-fetch": "^2.7.0"
+    "undici": "^8.4.1"
+  },
+  "overrides": {
+    "diff": "^9.0.0",
+    "serialize-javascript": "^7.0.5"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.2",
-    "@types/node": "^25.2.1",
-    "@types/node-fetch": "^2.6.13",
-    "chalk": "^4.1.2",
+    "@types/node": "^25.9.2",
+    "c8": "^11.0.0",
     "eslint": "^9.39.2",
-    "events": "^3.3.0",
-    "homebridge": "^1.11.1",
-    "mocha": "^11.7.5",
-    "nock": "^14.0.10",
+    "homebridge": "^2.1.0",
+    "mocha": "^11.7.6",
+    "nock": "^14.0.15",
     "nodemon": "^3.1.11",
-    "nyc": "^17.1.0",
     "rimraf": "^6.1.2",
-    "tough-cookie": "^6.0.0",
     "typescript": "^5.9.3",
-    "typescript-eslint": "^8.54.0"
+    "typescript-eslint": "^8.61.0"
   }
 }

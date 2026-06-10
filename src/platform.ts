@@ -262,30 +262,4 @@ export class TeslaPowerwallPlatform implements TeslaPowerwallPlatformInterface {
     }
   }
 
-  /**
-   * Create the appropriate accessory handler based on device type
-   */
-  private async createAccessoryHandler(accessory: PlatformAccessory, device: { type: string }): Promise<void> {
-    switch (device.type) {
-    case 'powerwall': {
-      const { PowerwallAccessory } = await import('./accessories/powerwall');
-      new PowerwallAccessory(this, accessory);
-      break;
-    }
-    case 'gridstatus': {
-      const { GridStatusAccessory } = await import('./accessories/gridstatus');
-      new GridStatusAccessory(this, accessory);
-      break;
-    }
-    case 'powermeter-load':
-    case 'powermeter-solar':
-    case 'powermeter-grid': {
-      const { PowerMeterAccessory } = await import('./accessories/powermeter');
-      new PowerMeterAccessory(this, accessory);
-      break;
-    }
-    default:
-      this.log.warn('Unknown device type:', device.type);
-    }
-  }
 }

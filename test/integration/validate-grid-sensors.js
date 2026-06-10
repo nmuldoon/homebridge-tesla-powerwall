@@ -12,8 +12,7 @@
 
 /* eslint-disable no-console */
 
-const fetch = require('node-fetch');
-const { Agent } = require('https');
+const { Agent, fetch } = require('undici');
 
 // Configuration
 const config = {
@@ -55,14 +54,14 @@ async function validateGridSensors() {
     console.log('');
 
     const baseUrl = `https://${config.ip}`;
-    const agent = new Agent({ rejectUnauthorized: false });
+    const dispatcher = new Agent({ connect: { rejectUnauthorized: false } });
 
     // Step 1: Login
     console.log('🔐 Step 1: Authenticating...');
     const loginResponse = await fetch(`${baseUrl}/api/login/Basic`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      agent: agent,
+      dispatcher,
       body: JSON.stringify({
         username: 'customer', // Tesla Powerwall only supports 'customer' as username
         password: config.password,
@@ -74,12 +73,11 @@ async function validateGridSensors() {
     }
 
     // Extract cookies
-    const setCookie = loginResponse.headers.get('set-cookie');
-    if (!setCookie) {
+    const cookiePairs = loginResponse.headers.getSetCookie();
+    if (cookiePairs.length === 0) {
       throw new Error('No session cookie received from login');
     }
-
-    const sessionCookie = setCookie.split(';')[0];
+    const sessionCookie = cookiePairs.map(c => c.split(';')[0].trim()).filter(Boolean).join('; ');
     console.log('✅ Authentication successful');
     console.log('');
 
@@ -88,7 +86,7 @@ async function validateGridSensors() {
     const metersResponse = await fetch(`${baseUrl}/api/meters/aggregates`, {
       method: 'GET',
       headers: { Cookie: sessionCookie },
-      agent: agent,
+      dispatcher,
     });
 
     if (!metersResponse.ok) {
