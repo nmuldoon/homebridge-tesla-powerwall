@@ -71,7 +71,9 @@ export class PowerwallAccessory {
       const data = await this.platform.httpClient.getSystemStatus();
       const reportedPercentage = data.percentage;
       const resolvedPercentage = reportedPercentage ?? this.batteryLevel ?? 50;
-      this.batteryLevel = Math.round(resolvedPercentage);
+      // HomeKit BatteryLevel is an integer 0-100. Round down to match the Tesla
+      // and Apple Home apps, which always floor the reported percentage.
+      this.batteryLevel = Math.floor(resolvedPercentage);
       this.service.updateCharacteristic(this.platform.Characteristic.BatteryLevel, this.batteryLevel);
 
       this.platform.log.debug('Get Characteristic BatteryLevel ->', this.batteryLevel);
@@ -114,7 +116,7 @@ export class PowerwallAccessory {
       const data = await this.platform.httpClient.getSystemStatus();
       const reportedPercentage = data.percentage;
       const resolvedPercentage = reportedPercentage ?? this.batteryLevel ?? 50;
-      this.batteryLevel = Math.round(resolvedPercentage);
+      this.batteryLevel = Math.floor(resolvedPercentage);
       this.service.updateCharacteristic(this.platform.Characteristic.BatteryLevel, this.batteryLevel);
 
       const lowBatteryThreshold = this.platform.config.lowBattery ?? 20;
@@ -151,9 +153,11 @@ export class PowerwallAccessory {
       const data = await this.platform.httpClient.getSystemStatus();
       const reportedPercentage = data.percentage;
       const resolvedPercentage = reportedPercentage ?? this.batteryLevel ?? 50;
-      // Don't round for brightness - use exact percentage
-      this.platform.log.debug('Get Characteristic Brightness (Battery Level) ->', resolvedPercentage);
-      return resolvedPercentage;
+      // HomeKit Brightness is an integer 0-100. Round down to match the Apple
+      // Home app, which always floors the displayed value.
+      const brightness = Math.floor(resolvedPercentage);
+      this.platform.log.debug('Get Characteristic Brightness (Battery Level) ->', brightness);
+      return brightness;
     } catch (error) {
       this.platform.log.error('Error getting battery level for brightness:', error);
       return this.batteryLevel;

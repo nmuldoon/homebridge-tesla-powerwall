@@ -49,14 +49,14 @@ export class PowerMeterAccessory {
    */
   private getMeterType(deviceType: string): string {
     switch (deviceType) {
-      case 'powermeter-load':
-        return 'load';
-      case 'powermeter-solar':
-        return 'solar';
-      case 'powermeter-grid':
-        return 'site';
-      default:
-        return 'unknown';
+    case 'powermeter-load':
+      return 'load';
+    case 'powermeter-solar':
+      return 'solar';
+    case 'powermeter-grid':
+      return 'site';
+    default:
+      return 'unknown';
     }
   }
 
@@ -71,20 +71,21 @@ export class PowerMeterAccessory {
 
       // Extract power based on meter type
       switch (this.meterType) {
-        case 'load':
-          power = Math.abs(data.load?.instant_power || 0);
-          break;
-        case 'solar':
-          power = Math.abs(data.solar?.instant_power || 0);
-          break;
-        case 'site':
-          power = Math.abs(data.site?.instant_power || 0);
-          break;
+      case 'load':
+        power = Math.abs(data.load?.instant_power || 0);
+        break;
+      case 'solar':
+        power = Math.abs(data.solar?.instant_power || 0);
+        break;
+      case 'site':
+        power = Math.abs(data.site?.instant_power || 0);
+        break;
       }
 
-      // Map watts to lux range (0.0001 to 100000)
-      // We'll use a logarithmic scale to handle the wide range of possible power values
-      this.currentPower = Math.max(0.0001, Math.min(100000, power / 10));
+      // Report power directly in watts. HomeKit's ambient light level (lux)
+      // characteristic accepts 0.0001 to 100000, which comfortably covers the
+      // power range of any residential Powerwall installation.
+      this.currentPower = Math.max(0.0001, Math.min(100000, power));
 
       this.platform.log.debug(`Get Characteristic ${this.meterType} Power ->`, 
         `${power}W (${this.currentPower} lux)`);

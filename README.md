@@ -161,7 +161,15 @@ The validator will:
 4. **Importing Sensor** (`Tesla Powerwall Importing`) - Contact sensor that opens when you are importing from the grid
    - **Open** = importing from the grid (site `instant_power` > +`gridSensorThreshold`)
    - **Closed** = idle / not importing
-5. **Power Meters** - Light sensors showing power flow for Solar, Grid, and Load
+5. **Power Meters** - Light sensors showing instantaneous power flow, in watts
+   (the lux value equals watts). Three are provided:
+   - `Tesla Powerwall Solar` - power your panels are generating
+   - `Tesla Powerwall Grid` - power flowing to/from the utility grid
+   - `Tesla Powerwall Load` - total power your home is consuming
+
+   > HomeKit has no native power-sensor type, so watts are carried on a light
+   > sensor's lux value (range 0–100000, which covers any residential system).
+   > Values are reported as actual watts.
 
 > **A note on "Open" vs "Closed"**: HomeKit contact sensors only have two
 > labels — "Open" and "Closed" — borrowed from door/window sensors. The
