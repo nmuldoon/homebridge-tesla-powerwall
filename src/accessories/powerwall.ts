@@ -52,12 +52,16 @@ export class PowerwallAccessory {
     // Set the lightbulb service name
     this.lightbulbService.setCharacteristic(this.platform.Characteristic.Name, accessory.displayName);
 
-    // Register handlers for the Lightbulb characteristics
+    // Register handlers for the Lightbulb characteristics. The lightbulb is a
+    // read-only visualization of the battery, so the onSet handlers reject any
+    // user change by re-asserting the correct value (see issue #21).
     this.lightbulbService.getCharacteristic(this.platform.Characteristic.On)
-      .onGet(this.getLightbulbOn.bind(this));
+      .onGet(this.getLightbulbOn.bind(this))
+      .onSet(this.setLightbulbOn.bind(this));
 
     this.lightbulbService.getCharacteristic(this.platform.Characteristic.Brightness)
-      .onGet(this.getLightbulbBrightness.bind(this));
+      .onGet(this.getLightbulbBrightness.bind(this))
+      .onSet(this.setLightbulbBrightness.bind(this));
 
     // Start polling for updates
     this.startPolling();
@@ -142,6 +146,36 @@ export class PowerwallAccessory {
   async getLightbulbOn(): Promise<CharacteristicValue> {
     // Always return true - the lightbulb is "on" to visualize the battery
     return true;
+  }
+
+  /**
+   * Handle requests to set the Lightbulb "On" characteristic.
+   * The lightbulb only visualizes the Powerwall battery and cannot be switched
+   * off, so any attempt to turn it off is reverted back to "on". Apple Home
+   * shows the requested state optimistically, so we re-assert the correct value
+   * once the current set transaction settles, returning the UI to normal almost
+   * immediately (see issue #21).
+   */
+  async setLightbulbOn(value: CharacteristicValue): Promise<void> {
+    if (value === true) {
+      return;
+    }
+    this.platform.log.debug('Ignoring attempt to turn Powerwall lightbulb off; restoring On ->', true);
+    setTimeout(() => {
+      this.lightbulbService.updateCharacteristic(this.platform.Characteristic.On, true);
+    }, 100);
+  }
+
+  /**
+   * Handle requests to set the Lightbulb "Brightness" characteristic.
+   * Brightness mirrors the battery percentage and is not user-controllable, so
+   * any change is reverted back to the actual battery level (see issue #21).
+   */
+  async setLightbulbBrightness(value: CharacteristicValue): Promise<void> {
+    this.platform.log.debug('Ignoring attempt to set Powerwall brightness to', value, '; restoring battery level ->', this.batteryLevel);
+    setTimeout(() => {
+      this.lightbulbService.updateCharacteristic(this.platform.Characteristic.Brightness, this.batteryLevel);
+    }, 100);
   }
 
   /**
