@@ -24,6 +24,11 @@ All notable changes to this project will be documented in this file.
   and renamed `eslint.config.js` → `eslint.config.mjs` to clear the
   `MODULE_TYPELESS_PACKAGE_JSON` warning. (#16)
 
+### Documentation
+- Expanded the README's power-meter description to spell out what each
+  meter shows (Solar = generation, Grid = utility flow, Load = household
+  consumption) and to note that the lux value equals actual watts.
+
 ## [4.2.2] - 2026-06-10
 
 ### Changed (breaking for existing automations)
