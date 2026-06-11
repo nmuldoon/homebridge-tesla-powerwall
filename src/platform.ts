@@ -1,8 +1,7 @@
 import type { 
   API, 
-  Characteristic, 
-  DynamicPlatformPlugin, 
-  Logging, 
+  Characteristic,
+  Logging,
   PlatformAccessory, 
   PlatformConfig, 
   Service,
@@ -125,7 +124,7 @@ export class TeslaPowerwallPlatform implements TeslaPowerwallPlatformInterface {
    * Create the main Powerwall accessory
    */
   private async createPowerwallAccessory(): Promise<void> {
-    const { PowerwallAccessory } = await import('./accessories/powerwall');
+    const { PowerwallAccessory } = await import('./accessories/powerwall.js');
     const uuid = this.api.hap.uuid.generate('powerwall-main');
     const displayName = 'Tesla Powerwall';
 
@@ -149,7 +148,7 @@ export class TeslaPowerwallPlatform implements TeslaPowerwallPlatformInterface {
    * Create the grid status accessory
    */
   private async createGridStatusAccessory(): Promise<void> {
-    const { GridStatusAccessory } = await import('./accessories/gridstatus');
+    const { GridStatusAccessory } = await import('./accessories/gridstatus.js');
     const uuid = this.api.hap.uuid.generate('powerwall-grid-status');
     const displayName = 'Tesla Powerwall Grid Online';
 
@@ -173,7 +172,7 @@ export class TeslaPowerwallPlatform implements TeslaPowerwallPlatformInterface {
    * Create grid power sensor accessories
    */
   private async createGridPowerSensors(): Promise<void> {
-    const { GridPowerSensorAccessory } = await import('./accessories/gridpowersensor');
+    const { GridPowerSensorAccessory } = await import('./accessories/gridpowersensor.js');
     
     // Create feeding to grid sensor
     const feedingUuid = this.api.hap.uuid.generate('powerwall-grid-feeding-sensor');
@@ -218,7 +217,7 @@ export class TeslaPowerwallPlatform implements TeslaPowerwallPlatformInterface {
    * Create power meter accessories
    */
   private async createPowerMeterAccessories(): Promise<void> {
-    const { PowerMeterAccessory } = await import('./accessories/powermeter');
+    const { PowerMeterAccessory } = await import('./accessories/powermeter.js');
     const meterTypes = [
       { type: 'powermeter-solar', name: 'Tesla Powerwall Solar' },
       { type: 'powermeter-grid', name: 'Tesla Powerwall Grid' },

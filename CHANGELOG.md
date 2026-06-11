@@ -2,6 +2,28 @@
 
 All notable changes to this project will be documented in this file.
 
+## [4.2.3] - 2026-06-11
+
+### Fixed
+- Power meters (solar/grid/load) now report the **actual watts** instead of
+  one-tenth of the reading. The previous `power / 10` scaling was removed;
+  HomeKit's ambient-light (lux) characteristic accepts up to 100000, which
+  comfortably covers any residential Powerwall. (#18)
+- Battery level and the battery lightbulb brightness now **round down**
+  (`Math.floor`) instead of to the nearest integer, matching the Tesla and
+  Apple Home apps and the HomeKit integer 0–100 spec. (#19)
+
+### Changed
+- `tsconfig.json` now uses `"module"`/`"moduleResolution": "nodenext"`
+  (the previous `"node"` value is deprecated), matching the current
+  homebridge-plugin-template. Relative dynamic imports were given explicit
+  `.js` extensions as required by `nodenext`. (#17)
+- Added a `lint` script (`eslint . --max-warnings=0`) and made
+  `prepublishOnly` run lint before build, matching the plugin template.
+  Fixed the existing lint errors (switch-case indentation, unused import)
+  and renamed `eslint.config.js` → `eslint.config.mjs` to clear the
+  `MODULE_TYPELESS_PACKAGE_JSON` warning. (#16)
+
 ## [4.2.2] - 2026-06-10
 
 ### Changed (breaking for existing automations)
