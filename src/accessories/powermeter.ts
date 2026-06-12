@@ -55,6 +55,8 @@ export class PowerMeterAccessory {
       return 'solar';
     case 'powermeter-grid':
       return 'site';
+    case 'powermeter-battery':
+      return 'battery';
     default:
       return 'unknown';
     }
@@ -79,6 +81,11 @@ export class PowerMeterAccessory {
         break;
       case 'site':
         power = Math.abs(data.site?.instant_power || 0);
+        break;
+      case 'battery':
+        // Magnitude only — lux can't be negative. Charge vs discharge direction
+        // is exposed by the Powerwall battery accessory's ChargingState.
+        power = Math.abs(data.battery?.instant_power || 0);
         break;
       }
 
