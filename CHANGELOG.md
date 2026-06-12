@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [Unreleased]
+
+### Fixed
+- The battery lightbulb is now **read-only**. If you toggle it off or change
+  its brightness in the Home app, the plugin immediately reverts the change
+  so the tile snaps back to the real battery state instead of showing the
+  bogus value until the next poll. (#21)
+
 ## [4.2.3] - 2026-06-11
 
 ### Fixed
