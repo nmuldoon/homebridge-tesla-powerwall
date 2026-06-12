@@ -141,7 +141,7 @@ The validator will:
 - `enableGridStatus`: Show grid connectivity status as a Contact Sensor (default: true)
 - `enableGridPowerSensors`: Show sensors for grid power flow detection (default: true) ⭐ **NEW**
 - `gridSensorThreshold`: Power threshold in watts for sensor activation (default: 50W, helps avoid false triggers) ⭐ **NEW**
-- `enablePowerMeters`: Show power flow meters (Solar, Grid, Load) as Light Sensors (default: true)
+- `enablePowerMeters`: Show power flow meters (Solar, Grid, Home, Battery) as Light Sensors (default: true)
 - `enableHistory`: Enable historical data logging for Eve app (default: false)
 
 #### Troubleshooting
@@ -152,9 +152,9 @@ The validator will:
 ### Accessories Provided
 
 1. **Battery Status** - Shows battery charge level, charging state, and low battery alerts
-2. **Grid Online Sensor** (`Tesla Powerwall Grid Online`) - Contact sensor reflecting whether the Powerwall is grid-tied
+2. **Grid Offline Sensor** (`Tesla Powerwall Grid Offline`) - Contact sensor reflecting whether the Powerwall has lost the grid
    - **Closed** = grid connected (`grid_status: SystemGridConnected`)
-   - **Open** = grid disconnected / islanded (`SystemIslandedActive` or similar)
+   - **Open** = grid offline / islanded (`SystemIslandedActive` or similar)
 3. **Exporting Sensor** (`Tesla Powerwall Exporting`) - Contact sensor that opens when you are exporting to the grid
    - **Open** = exporting to the grid (site `instant_power` < -`gridSensorThreshold`)
    - **Closed** = idle / not exporting
@@ -162,22 +162,34 @@ The validator will:
    - **Open** = importing from the grid (site `instant_power` > +`gridSensorThreshold`)
    - **Closed** = idle / not importing
 5. **Power Meters** - Light sensors showing instantaneous power flow, in watts
-   (the lux value equals watts). Three are provided:
+   (the lux value equals watts). Four are provided:
    - `Tesla Powerwall Solar` - power your panels are generating
    - `Tesla Powerwall Grid` - power flowing to/from the utility grid
-   - `Tesla Powerwall Load` - total power your home is consuming
+   - `Tesla Powerwall Home` - total power your home is consuming
+   - `Tesla Powerwall Battery` - power flowing to/from the Powerwall battery
 
    > HomeKit has no native power-sensor type, so watts are carried on a light
    > sensor's lux value (range 0–100000, which covers any residential system).
    > Values are reported as actual watts.
+   >
+   > **Meters report magnitude only.** Lux can never be negative, so each meter
+   > reports the *absolute* power (e.g. the Grid meter shows the same value
+   > whether you are importing or exporting). To recover **direction** in an
+   > automation, combine the meter's magnitude with a direction signal:
+   > - **Grid** flow direction → the `Exporting` / `Importing` contact sensors.
+   > - **Battery** charge vs discharge → the battery accessory's *charging
+   >   state* (charging while `battery.instant_power` < -50 W).
+   >
+   > The `Home` meter is named to match the Tesla app (the underlying API field
+   > is still `load`).
 
 > **A note on "Open" vs "Closed"**: HomeKit contact sensors only have two
 > labels — "Open" and "Closed" — borrowed from door/window sensors. The
 > convention is **Closed = quiescent / resting state, Open = the noteworthy
 > event** (which is what you usually build automations on). For these
 > sensors:
-> - `Grid Online` is **Closed** while everything is normal (grid connected)
->   and **Opens** when the Powerwall islands.
+> - `Grid Offline` is **Closed** while everything is normal (grid connected)
+>   and **Opens** when the Powerwall islands (the grid goes offline).
 > - `Exporting` and `Importing` are **Closed** while idle and **Open** while
 >   that flow direction is actively above the threshold.
 >

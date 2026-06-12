@@ -2,6 +2,29 @@
 
 All notable changes to this project will be documented in this file.
 
+## [Unreleased]
+
+### Added
+- New **Battery** power meter (`Tesla Powerwall Battery`) showing the
+  instantaneous power flowing to/from the Powerwall battery, in watts. Like
+  the other meters it reports magnitude only (lux can't be negative); use the
+  battery accessory's charging state to tell charge from discharge. (#22)
+
+### Changed
+- Renamed the **Load** power meter to **Home** (`Tesla Powerwall Home`) to
+  match the term the Tesla app uses. The underlying API field is unchanged
+  (`load`); only the display name changed, so this only affects fresh
+  installs — existing accessories keep their name. (#22)
+- Renamed the grid status contact sensor from **Grid Online** to **Grid
+  Offline** for consistency with the Exporting/Importing sensors, which are
+  named for what their **open** state means. The sensor's behaviour is
+  unchanged (Closed = grid connected, Open = grid offline / islanded). (#22)
+
+### Documentation
+- Documented that the power meters report magnitude only, and how to recover
+  flow direction in automations by combining a meter with the
+  Exporting/Importing sensors (grid) or the battery charging state. (#22)
+
 ## [4.2.3] - 2026-06-11
 
 ### Fixed

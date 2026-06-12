@@ -150,7 +150,7 @@ export class TeslaPowerwallPlatform implements TeslaPowerwallPlatformInterface {
   private async createGridStatusAccessory(): Promise<void> {
     const { GridStatusAccessory } = await import('./accessories/gridstatus.js');
     const uuid = this.api.hap.uuid.generate('powerwall-grid-status');
-    const displayName = 'Tesla Powerwall Grid Online';
+    const displayName = 'Tesla Powerwall Grid Offline';
 
     const existingAccessory = this.accessories.get(uuid);
 
@@ -221,7 +221,10 @@ export class TeslaPowerwallPlatform implements TeslaPowerwallPlatformInterface {
     const meterTypes = [
       { type: 'powermeter-solar', name: 'Tesla Powerwall Solar' },
       { type: 'powermeter-grid', name: 'Tesla Powerwall Grid' },
-      { type: 'powermeter-load', name: 'Tesla Powerwall Load' },
+      // "Home" matches the term the Tesla app uses for household consumption
+      // (the API field is still `load`; only the display name changed).
+      { type: 'powermeter-load', name: 'Tesla Powerwall Home' },
+      { type: 'powermeter-battery', name: 'Tesla Powerwall Battery' },
     ];
 
     for (const meter of meterTypes) {
