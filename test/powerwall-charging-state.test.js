@@ -14,7 +14,13 @@ const ChargingState = {
 function makeService() {
   const svc = {
     setCharacteristic() { return svc; },
-    getCharacteristic() { return { onGet() { return this; } }; },
+    getCharacteristic() {
+      const characteristic = {
+        onGet() { return characteristic; },
+        onSet() { return characteristic; },
+      };
+      return characteristic;
+    },
     updateCharacteristic() { return svc; },
   };
   return svc;

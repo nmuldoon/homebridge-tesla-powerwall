@@ -52,12 +52,16 @@ export class PowerwallAccessory {
     // Set the lightbulb service name
     this.lightbulbService.setCharacteristic(this.platform.Characteristic.Name, accessory.displayName);
 
-    // Register handlers for the Lightbulb characteristics
+    // Register handlers for the Lightbulb characteristics.
+    // The lightbulb is read-only — it only visualizes the battery level — so we
+    // also register onSet handlers that immediately revert any user change.
     this.lightbulbService.getCharacteristic(this.platform.Characteristic.On)
-      .onGet(this.getLightbulbOn.bind(this));
+      .onGet(this.getLightbulbOn.bind(this))
+      .onSet(this.setLightbulbOn.bind(this));
 
     this.lightbulbService.getCharacteristic(this.platform.Characteristic.Brightness)
-      .onGet(this.getLightbulbBrightness.bind(this));
+      .onGet(this.getLightbulbBrightness.bind(this))
+      .onSet(this.setLightbulbBrightness.bind(this));
 
     // Start polling for updates
     this.startPolling();
@@ -142,6 +146,34 @@ export class PowerwallAccessory {
   async getLightbulbOn(): Promise<CharacteristicValue> {
     // Always return true - the lightbulb is "on" to visualize the battery
     return true;
+  }
+
+  /**
+   * Handle attempts to change the Lightbulb "On" characteristic.
+   * The lightbulb is a read-only visualization of the Powerwall battery, so we
+   * ignore the requested value and snap it back to "on" almost immediately. The
+   * revert is deferred so HomeKit finishes acknowledging the write first;
+   * otherwise the corrected value can be dropped and the UI stays wrong until
+   * the next poll.
+   */
+  async setLightbulbOn(value: CharacteristicValue): Promise<void> {
+    this.platform.log.debug('Ignoring attempt to set Lightbulb On ->', value);
+    setImmediate(() => {
+      this.lightbulbService.updateCharacteristic(this.platform.Characteristic.On, true);
+    });
+  }
+
+  /**
+   * Handle attempts to change the Lightbulb "Brightness" characteristic.
+   * Brightness mirrors the battery percentage and cannot be set by the user, so
+   * we revert it to the last known battery level (deferred, as above).
+   */
+  async setLightbulbBrightness(value: CharacteristicValue): Promise<void> {
+    this.platform.log.debug('Ignoring attempt to set Lightbulb Brightness ->', value);
+    setImmediate(() => {
+      this.lightbulbService.updateCharacteristic(
+        this.platform.Characteristic.Brightness, this.batteryLevel);
+    });
   }
 
   /**
